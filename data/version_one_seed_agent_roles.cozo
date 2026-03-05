@@ -1,0 +1,6 @@
+?[agent, role, scope] <- [
+  ["dev", "component-agent", "version-one"],
+  ["main", "main-agent", "version-one"],
+  ["research", "research-agent", "version-one"]
+];
+:put agent_role { agent, role => scope }

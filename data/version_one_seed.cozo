@@ -1,0 +1,6 @@
+?[lane, rule, value] <- [
+  ["main", "executive", "true"],
+  ["dev", "periodicRebaseOnMain", "true"],
+  ["research", "forumParticipant", "true"]
+];
+:put lane_policy { lane, rule => value }
