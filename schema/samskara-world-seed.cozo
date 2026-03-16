@@ -1,0 +1,96 @@
+# ── Liveness vocabulary seed ─────────────────────────────────────────
+
+?[name, rank, in_live_portion, description] <- [
+  ["doctrine",       0, true,  "Foundational invariant — highest authority, cannot be superseded without principle revision"],
+  ["trusted_fact",   1, true,  "Verified through direct observation or trusted source"],
+  ["observation",    2, true,  "Learned from codebase, session, or agent reasoning — default for new thoughts"],
+  ["rumor",          3, true,  "Unverified claim from uncertain source — queryable but not authoritative"],
+  ["web_gossip",     4, true,  "Information from web sources — lowest trust, may be outdated"],
+  ["superseded",     5, false, "Was live, replaced by newer thought via supersession — retained for lineage"],
+  ["disproven",      6, false, "Actively contradicted by evidence — retained as record of what was believed"]
+]
+:put liveness_vocab { name => rank, in_live_portion, description }
+
+# ── Agent seed ──────────────────────────────────────────────────────
+
+?[id, name, role, email, liveness] <- [
+  ["claude-code-1", "Claude Code", "first-agent", "noreply@anthropic.com", "trusted_fact"]
+]
+:put agent { id => name, role, email, liveness }
+
+# ── Repo seed ───────────────────────────────────────────────────────
+
+?[name, github, purpose, depends_on, liveness] <- [
+  ["criome-cozo",              "LiGoldragon/criome-cozo",              "CozoDB wrapper crate (leaf dependency)",                  "",                                       "trusted_fact"],
+  ["samskara-lojix-contract",  "LiGoldragon/samskara-lojix-contract",  "Shared datalog relation schemas between agents",          "criome-cozo",                            "trusted_fact"],
+  ["samskara",                 "LiGoldragon/samskara",                 "Pure datalog agent — sees only relations",                "criome-cozo,samskara-lojix-contract",    "trusted_fact"],
+  ["lojix",                    "LiGoldragon/lojix",                    "DSL transpiler (TS phase 1, Rust phase 2)",               "criome-cozo,samskara-lojix-contract",    "trusted_fact"],
+  ["Mentci",                   "LiGoldragon/Mentci",                   "Workspace (flake + dev shell + docs + samskara-world)",   "",                                       "trusted_fact"]
+]
+:put repo { name => github, purpose, depends_on, liveness }
+
+# ── Repo state seed ─────────────────────────────────────────────────
+
+?[name, bookmark, build_status, last_checked_ts, notes, liveness] <- [
+  ["criome-cozo",              "main",  "passing",  "2026-03-16",  "v0.7.13-alpha.3 cozo-ce, pins rayon 1.10.0",  "observation"],
+  ["samskara-lojix-contract",  "main",  "passing",  "2026-03-16",  "3 contract relations, clean",                 "observation"],
+  ["samskara",                 "v1",    "passing",  "2026-03-16",  "CLI + jj-mirror, main loop stubbed",          "observation"],
+  ["lojix",                    "v1",    "passing",  "2026-03-16",  "CLI + transpile skeleton, all logic stubbed",  "observation"],
+  ["Mentci",                   "main",  "n/a",      "2026-03-16",  "Workspace only — no build artifacts",         "observation"]
+]
+:put repo_state { name => bookmark, build_status, last_checked_ts, notes, liveness }
+
+# ── Principle seed (doctrine liveness) ──────────────────────────────
+
+?[id, domain, rule, reason, liveness] <- [
+  ["p1", "data-ownership",   "Samskara NEVER sees files, code, or the OS — only relations",              "Pure datalog agent invariant",                      "doctrine"],
+  ["p2", "data-ownership",   "Each agent owns its own CozoDB — no shared database access",               "Sema data ownership principle",                     "doctrine"],
+  ["p3", "communication",    "Communication is ONLY through contract relations",                         "No RPC, no message bus, no shared state",           "doctrine"],
+  ["p4", "vcs",              "Jujutsu for VCS — git is storage backend only",                            "jj is the only allowed interface",                  "doctrine"],
+  ["p5", "build",            "Nix for builds, Rust for code — no exceptions",                            "Language policy",                                   "doctrine"],
+  ["p6", "architecture",     "Micro-repo style: each concern is its own repo, contracts too",            "Separation of concerns at repo boundary",           "doctrine"],
+  ["p7", "serialization",    "Binary format is Cap'n Proto — headerless data indexed by reader version", "Zero-copy, deterministic, self-describing envelope", "doctrine"],
+  ["p8", "version-control",  "samskara-vcs version-controls database changes, not files",                "Relations are the unit of change, not files",       "doctrine"]
+]
+:put principle { id => domain, rule, reason, liveness }
+
+# ── Thought seed ────────────────────────────────────────────────────
+
+?[id, kind, scope, status, title, body, created_ts, updated_ts, liveness] <- [
+  ["t-user-1", "user", "global", "approved", "Project owner: Li",
+   "mail@ligoldragon.com. Mentci creator. Prefers jj-centric workflow, Rust-only policy, datalog-native design.",
+   "2026-03-16", "2026-03-16", "trusted_fact"],
+  ["t-project-1", "project", "global", "approved", "Mentci v1 is successor to Mentci-AI (now Mentci-v0)",
+   "Original at criome/Mentci renamed to criome/Mentci-v0. New project at LiGoldragon/Mentci. Two-agent architecture: Samskara (pure datalog) + Lojix (DSL transpiler).",
+   "2026-03-16", "2026-03-16", "trusted_fact"],
+  ["t-project-2", "project", "lojix", "draft", "DSL design needed",
+   "Lojix has no transpile logic yet — all stubs. No DSL source relations exist. The lojix_source relation is defined but nothing populates it. DSL grammar is the next design task.",
+   "2026-03-16", "2026-03-16", "observation"],
+  ["t-observation-1", "observation", "global", "approved", "jj submodules do not exist yet",
+   "jj 0.36.0 has no submodule support. Tracked in jj-vcs/jj issue 494. Design doc exists but no implementation. Current workaround: Nix flake inputs for hermetic builds, sibling path deps for local dev.",
+   "2026-03-16", "2026-03-16", "trusted_fact"],
+  ["t-reference-1", "reference", "global", "approved", "FAVA Trails - inspiration for agent memory",
+   "github.com/MachineWisdomAI/fava-trails. MCP server for versioned agent memory using jj-tracked markdown. Key patterns: supersession, trust gate, typed relationships, draft isolation. Our datalog approach is strictly more powerful than their file-based emulation.",
+   "2026-03-16", "2026-03-16", "observation"],
+  ["t-feedback-1", "feedback", "global", "approved", "git is storage, jj is the only interface",
+   "Never use git commands directly. jj is mandatory for all VCS operations across all repos. Why: explicit requirement for jj-centric workflow. How to apply: all VCS operations use jj, all documentation references jj.",
+   "2026-03-16", "2026-03-16", "doctrine"]
+]
+:put thought { id => kind, scope, status, title, body, created_ts, updated_ts, liveness }
+
+# ── Thought tags ────────────────────────────────────────────────────
+
+?[thought_id, tag] <- [
+  ["t-user-1",         "identity"],
+  ["t-project-1",      "history"],
+  ["t-project-1",      "migration"],
+  ["t-project-2",      "next-step"],
+  ["t-project-2",      "design"],
+  ["t-observation-1",  "blocker"],
+  ["t-observation-1",  "jj"],
+  ["t-reference-1",    "inspiration"],
+  ["t-reference-1",    "memory"],
+  ["t-feedback-1",     "vcs"],
+  ["t-feedback-1",     "non-negotiable"]
+]
+:put thought_tag { thought_id, tag }

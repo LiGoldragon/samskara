@@ -9,22 +9,50 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    criome-cozo-src = { url = "github:LiGoldragon/criome-cozo"; flake = false; };
-    samskara-lojix-contract-src = { url = "github:LiGoldragon/samskara-lojix-contract"; flake = false; };
+    criome-cozo = { url = "github:LiGoldragon/criome-cozo"; flake = false; };
+    samskara-lojix-contract = { url = "github:LiGoldragon/samskara-lojix-contract"; flake = false; };
   };
 
-  outputs = inputs@{ self, nixpkgs, flake-utils, crane, fenix, ... }:
+  outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-lojix-contract, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
         rustToolchain = fenix.packages.${system}.latest.toolchain;
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-        src = craneLib.cleanCargoSource ./.;
-      in
-      {
-        packages.default = craneLib.buildPackage {
+
+        # Include .cozo files alongside standard cargo sources
+        cozoFilter = path: _type: builtins.match ".*\\.cozo$" path != null;
+        sourceFilter = path: type:
+          (cozoFilter path type) || (craneLib.filterCargoSources path type);
+        src = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = sourceFilter;
+        };
+
+        commonArgs = {
           inherit src;
           pname = "samskara";
+          # Place path deps where Cargo.toml expects them (../<dep>)
+          postUnpack = ''
+            depDir=$(dirname $sourceRoot)
+            cp -rL ${criome-cozo} $depDir/criome-cozo
+            cp -rL ${samskara-lojix-contract} $depDir/samskara-lojix-contract
+          '';
+        };
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+      in
+      {
+        packages.default = craneLib.buildPackage (commonArgs // {
+          inherit cargoArtifacts;
+        });
+
+        checks = {
+          build = craneLib.buildPackage (commonArgs // {
+            inherit cargoArtifacts;
+          });
+          tests = craneLib.cargoTest (commonArgs // {
+            inherit cargoArtifacts;
+          });
         };
 
         devShells.default = craneLib.devShell {

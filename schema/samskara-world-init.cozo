@@ -1,0 +1,165 @@
+# ── Liveness vocabulary ──────────────────────────────────────────────
+# Every relation that participates in the world state carries a
+# `liveness: String` column instead of the old `live: Bool`.
+#
+# Live portion (included in world hash):
+#   doctrine       — foundational invariant, highest authority
+#   trusted_fact   — verified through observation or trusted source
+#   observation    — learned from codebase, session, or reasoning
+#   rumor          — unverified claim, queryable but not authoritative
+#   web_gossip     — external web source, lowest trust
+#
+# Dead portion (excluded from world hash, retained for lineage):
+#   superseded     — replaced by a newer thought via supersession
+#   disproven      — actively contradicted by evidence
+
+:create liveness_vocab {
+  name: String =>
+  rank: Int,
+  in_live_portion: Bool,
+  description: String
+}
+
+# ── Knowledge layer ─────────────────────────────────────────────────
+
+:create thought {
+  id: String =>
+  kind: String,
+  scope: String,
+  status: String,
+  title: String,
+  body: String,
+  created_ts: String,
+  updated_ts: String,
+  liveness: String
+}
+
+:create thought_link {
+  from_id: String,
+  to_id: String =>
+  rel_type: String
+}
+
+:create thought_tag {
+  thought_id: String,
+  tag: String
+}
+
+:create trust_review {
+  thought_id: String =>
+  reviewer: String,
+  verdict: String,
+  reason: String,
+  ts: String
+}
+
+# ── Agent layer ─────────────────────────────────────────────────────
+
+:create agent {
+  id: String =>
+  name: String,
+  role: String,
+  email: String,
+  liveness: String
+}
+
+:create agent_session {
+  session_id: String =>
+  agent_id: String,
+  started_ts: String,
+  ended_ts: String,
+  repo_scope: String,
+  summary: String,
+  liveness: String
+}
+
+# ── World layer ─────────────────────────────────────────────────────
+
+:create repo {
+  name: String =>
+  github: String,
+  purpose: String,
+  depends_on: String,
+  liveness: String
+}
+
+:create repo_state {
+  name: String =>
+  bookmark: String,
+  build_status: String,
+  last_checked_ts: String,
+  notes: String,
+  liveness: String
+}
+
+:create principle {
+  id: String =>
+  domain: String,
+  rule: String,
+  reason: String,
+  liveness: String
+}
+
+# ── Version control layer ───────────────────────────────────────────
+# These relations are meta-level: they track the state of all other
+# relations. They are always "doctrine" liveness — you don't
+# version-control the version-control (the genesis fixed point
+# notwithstanding).
+
+:create world_commit {
+  id: String =>
+  parent_id: String,
+  agent_id: String,
+  session_id: String,
+  message: String,
+  ts: String,
+  manifest_hash: String
+}
+
+:create world_manifest {
+  commit_id: String,
+  relation_name: String =>
+  row_count: Int,
+  content_hash: String
+}
+
+:create world_delta {
+  commit_id: String,
+  seq: Int =>
+  relation_name: String,
+  operation: String,
+  row_key: String,
+  row_data: String
+}
+
+:create world_snapshot {
+  commit_id: String,
+  relation_name: String =>
+  data: String,
+  reader_version: String,
+  byte_count: Int
+}
+
+:create world_snapshot_index {
+  commit_id: String =>
+  snapshot_exists: Bool,
+  nearest_snapshot_id: String,
+  delta_depth: Int
+}
+
+:create world_commit_ref {
+  commit_id: String,
+  ref_type: String =>
+  ref_value: String
+}
+
+# ── Archive layer ───────────────────────────────────────────────────
+# Cap'n Proto reader version registry. Headers stored once per schema
+# version; data blocks are headerless, indexed by content hash.
+
+:create archive_reader_version {
+  version_id: String =>
+  schema_hash: String,
+  segment_table: String,
+  capnp_schema: String
+}
