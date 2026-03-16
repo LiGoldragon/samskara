@@ -1,0 +1,64 @@
+:create intent {
+  id: String =>
+  polarity: String,
+  modality: String,
+  proposition: String,
+  live: Bool
+}
+
+:create policy {
+  id: String =>
+  lane: String,
+  rule: String,
+  value: String
+}
+
+:create evidence {
+  id: String =>
+  kind: String,
+  ref: String,
+  snippet: String,
+  source_hash: String
+}
+
+:create decision {
+  id: String =>
+  msg_id: String,
+  decision: String,
+  reason: String,
+  ts: String
+}
+
+:create agent_role {
+  agent: String =>
+  role: String
+}
+
+:create commit {
+  change_id: String =>
+  commit_id: String,
+  parent_change_id: String,
+  author: String,
+  ts: String,
+  commit_type: String,
+  title: String,
+  body: String,
+  live: Bool
+}
+
+:create commit_predecessor {
+  change_id: String,
+  predecessor_change_id: String
+}
+
+:create commit_diff {
+  change_id: String,
+  file_path: String =>
+  diff_content: String,
+  diff_bytes: Int
+}
+
+:create commit_type_vocab {
+  name: String =>
+  description: String
+}

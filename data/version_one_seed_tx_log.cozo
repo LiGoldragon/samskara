@@ -1,4 +1,0 @@
-?[tx, ts, issuer, reason] <- [
-  [1001, 591914141900, "main", "rewrite denied pending reconsideration evidence"]
-];
-:put tx_log { tx => ts, issuer, reason }
