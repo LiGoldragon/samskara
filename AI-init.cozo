@@ -3,7 +3,8 @@
   polarity: String,
   modality: String,
   proposition: String,
-  live: Bool
+  phase: String,
+  dignity: String
 }
 
 :create policy {
@@ -43,7 +44,8 @@
   commit_type: String,
   title: String,
   body: String,
-  live: Bool
+  phase: String,
+  dignity: String
 }
 
 :create commit_predecessor {
@@ -56,9 +58,4 @@
   file_path: String =>
   diff_content: String,
   diff_bytes: Int
-}
-
-:create commit_type_vocab {
-  name: String =>
-  description: String
 }

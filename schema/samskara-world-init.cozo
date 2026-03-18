@@ -1,26 +1,75 @@
-# ── Liveness vocabulary ──────────────────────────────────────────────
-# Every relation that participates in the world state carries a
-# `liveness: String` column instead of the old `live: Bool`.
-#
-# Live portion (included in world hash):
-#   doctrine       — foundational invariant, highest authority
-#   trusted_fact   — verified through observation or trusted source
-#   observation    — learned from codebase, session, or reasoning
-#   rumor          — unverified claim, queryable but not authoritative
-#   web_gossip     — external web source, lowest trust
-#
-# Dead portion (excluded from world hash, retained for lineage):
-#   superseded     — replaced by a newer thought via supersession
-#   disproven      — actively contradicted by evidence
+#── Enum registry ───────────────────────────────────────────────────
+#Self-registering: Enum lists itself. A PascalCase relation is an enum
+#if and only if it appears in this registry AND has a single String key.
 
-:create liveness_vocab {
+:create Enum {
   name: String =>
-  rank: Int,
-  in_live_portion: Bool,
   description: String
 }
 
-# ── Knowledge layer ─────────────────────────────────────────────────
+#── Phase vocabulary ─────────────────────────────────────────────────
+#Every relation that participates in the world state carries a
+#`phase: String` column encoding its lifecycle position, and a
+#`dignity: String` column encoding its trust level.
+//
+#Phase (the planetary tri-state, from the 2→3 ontological chain):
+#  sol       — ☉ manifest truth, in the world hash
+#  luna      — ☽ becoming, staged, not yet committed
+#  saturnus  — ♄ archived, superseded, retained in the ledger
+//
+#Dignity (trust level — saṃskṛta: nitya/siddha/dṛṣṭa/sandeha/bhrama):
+#  eternal     — nitya: immutable, always-true
+#  proven      — siddha: accomplished, verified
+#  seen        — dṛṣṭa: witnessed, observed (default)
+#  uncertain   — sandeha: doubt, unverified
+#  delusion    — bhrama: error, mistaking rope for snake
+
+:create Phase {
+  name: String =>
+  glyph: String,
+  in_world_hash: Bool,
+  description: String
+}
+
+:create Dignity {
+  name: String =>
+  rank: Int,
+  description: String
+}
+
+#── Commit message enums ──────────────────────────────────────────────
+#A commit message is a tuple of three tuples — Sol/Luna/Saturnus:
+#  (Sol: identity)        (CommitType) or (CommitType, scope)
+#  (Luna: transformation) (Action, "what transformed")
+#  (Saturnus: context)    (Verdict, "why") or ()
+
+:create CommitType {
+  name: String =>
+  description: String
+}
+
+:create Action {
+  name: String =>
+  description: String
+}
+
+:create Verdict {
+  name: String =>
+  description: String
+}
+
+#── Saṃskṛta equivalence layer ─────────────────────────────────────
+#Maps core English terms to their Vedic/Saṃskṛta roots.
+#domain: which relation or concept the term belongs to.
+
+:create samskrta {
+  term: String =>
+  samskrta: String,
+  domain: String,
+  meaning: String
+}
+
+#── Knowledge layer ─────────────────────────────────────────────────
 
 :create thought {
   id: String =>
@@ -31,7 +80,8 @@
   body: String,
   created_ts: String,
   updated_ts: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
 :create thought_link {
@@ -53,14 +103,15 @@
   ts: String
 }
 
-# ── Agent layer ─────────────────────────────────────────────────────
+#── Agent layer ─────────────────────────────────────────────────────
 
 :create agent {
   id: String =>
   name: String,
   role: String,
   email: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
 :create agent_session {
@@ -70,17 +121,19 @@
   ended_ts: String,
   repo_scope: String,
   summary: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
-# ── World layer ─────────────────────────────────────────────────────
+#── World layer ─────────────────────────────────────────────────────
 
 :create repo {
   name: String =>
   github: String,
   purpose: String,
   depends_on: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
 :create repo_state {
@@ -89,7 +142,8 @@
   build_status: String,
   last_checked_ts: String,
   notes: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
 :create principle {
@@ -97,14 +151,74 @@
   domain: String,
   rule: String,
   reason: String,
-  liveness: String
+  phase: String,
+  dignity: String
 }
 
-# ── Version control layer ───────────────────────────────────────────
-# These relations are meta-level: they track the state of all other
-# relations. They are always "doctrine" liveness — you don't
-# version-control the version-control (the genesis fixed point
-# notwithstanding).
+#── Astrological layer ─────────────────────────────────────────────
+#The twelve-fold structure of consciousness, grounded in the measure
+#formulae of physics (Young, The Geometry of Meaning). These are enum
+#relations — PascalCase, single String key — registered in the Enum
+#registry.
+
+:create Element {
+  name: String =>
+  quality: String,
+  description: String
+}
+
+:create Modality {
+  name: String =>
+  role: String,
+  description: String
+}
+
+:create Sign {
+  name: String =>
+  glyph: String,
+  element: String,
+  modality: String,
+  house: Int,
+  ruler: String,
+  phase: String,
+  dignity: String
+}
+
+:create Planet {
+  name: String =>
+  glyph: String,
+  rules: String,
+  exaltation: String,
+  detriment: String,
+  fall: String,
+  stage: Int,
+  freedom: Int,
+  phase: String,
+  dignity: String
+}
+
+:create Aspect {
+  name: String =>
+  degrees: Int,
+  nature: String,
+  description: String
+}
+
+:create Measure {
+  sign: String =>
+  formula: String,
+  element: String,
+  modality: String,
+  dimension: String,
+  physical: String,
+  psychological: String,
+  phase: String,
+  dignity: String
+}
+
+#── Version control layer ───────────────────────────────────────────
+#These relations are meta-level: they track the state of all other
+#relations. They do not carry phase/dignity — they are infrastructure.
 
 :create world_commit {
   id: String =>
@@ -153,9 +267,9 @@
   ref_value: String
 }
 
-# ── Archive layer ───────────────────────────────────────────────────
-# Cap'n Proto reader version registry. Headers stored once per schema
-# version; data blocks are headerless, indexed by content hash.
+#── Archive layer ───────────────────────────────────────────────────
+#Cap'n Proto reader version registry. Headers stored once per schema
+#version; data blocks are headerless, indexed by content hash.
 
 :create archive_reader_version {
   version_id: String =>
