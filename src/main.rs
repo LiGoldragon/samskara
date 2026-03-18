@@ -17,7 +17,7 @@ fn load_cozo_script(
     db: &criome_cozo::CriomeDb,
     script: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    for stmt in criome_cozo::split_cozo_statements(script) {
+    for stmt in criome_cozo::Script::from_str(script) {
         let trimmed = stmt.trim();
         if !trimmed.is_empty() && !is_comment_only(trimmed) {
             db.run_script(trimmed)?;
@@ -79,10 +79,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load seed data
     load_cozo_script(&db, include_str!("../schema/samskara-world-seed.cozo"))?;
     tracing::info!("samskara-world seed loaded");
-
-    // Seed commit type vocabulary
-    samskara::jj_mirror::seed_commit_types(&db)?;
-    tracing::info!("commit type vocabulary seeded");
 
     // List all relations
     let relations = db.run_script("::relations")?;

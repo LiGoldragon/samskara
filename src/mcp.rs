@@ -31,17 +31,25 @@ pub struct AssertThoughtParams {
     pub title: String,
     /// Full body text
     pub body: String,
-    /// Liveness: doctrine, trusted_fact, observation, rumor, web_gossip
-    #[schemars(default = "default_liveness")]
-    #[serde(default = "default_liveness")]
-    pub liveness: String,
+    /// Phase: luna (staged), sol (manifest), saturnus (archived)
+    #[schemars(default = "default_phase")]
+    #[serde(default = "default_phase")]
+    pub phase: String,
+    /// Dignity: eternal, proven, seen, uncertain, delusion
+    #[schemars(default = "default_dignity")]
+    #[serde(default = "default_dignity")]
+    pub dignity: String,
     /// Optional tags for indexing
     #[serde(default)]
     pub tags: Vec<String>,
 }
 
-fn default_liveness() -> String {
-    "observation".to_string()
+fn default_phase() -> String {
+    "luna".to_string()
+}
+
+fn default_dignity() -> String {
+    "seen".to_string()
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -55,9 +63,9 @@ pub struct QueryThoughtsParams {
     /// Filter by tag
     #[serde(default)]
     pub tag: Option<String>,
-    /// Minimum liveness level (default: include all live)
+    /// Filter by phase (luna, sol, saturnus). Default: exclude saturnus.
     #[serde(default)]
-    pub min_liveness: Option<String>,
+    pub phase: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -77,20 +85,11 @@ pub struct CommitWorldParams {
     pub session_id: Option<String>,
 }
 
-// ── Versioned relations (those participating in the world hash) ────
-
-const VERSIONED_RELATIONS: &[&str] = &[
-    "agent",
-    "agent_session",
-    "liveness_vocab",
-    "principle",
-    "repo",
-    "repo_state",
-    "thought",
-    "thought_link",
-    "thought_tag",
-    "trust_review",
-];
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct RestoreWorldParams {
+    /// Commit ID to restore the world state to
+    pub commit_id: String,
+}
 
 // ── Server struct ──────────────────────────────────────────────────
 
@@ -147,12 +146,12 @@ impl SamskaraMcp {
             Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
                 format!("{{\"error\": \"serialization failed: {e}\"}}")
             }),
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
 
-    #[tool(description = "Assert a new thought into the world model with kind, scope, status, liveness, and optional tags.")]
+    #[tool(description = "Assert a new thought into the world model with kind, scope, status, phase, dignity, and optional tags.")]
     async fn assert_thought(
         &self,
         Parameters(params): Parameters<AssertThoughtParams>,
@@ -164,10 +163,10 @@ impl SamskaraMcp {
             let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
 
             let thought_script = format!(
-                r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, liveness] <- [[
-                    "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}"
+                r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
+                    "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}"
                 ]]
-                :put thought {{ id => kind, scope, status, title, body, created_ts, updated_ts, liveness }}"#,
+                :put thought {{ id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }}"#,
                 esc(&params.id),
                 esc(&params.kind),
                 esc(&params.scope),
@@ -176,7 +175,8 @@ impl SamskaraMcp {
                 esc(&params.body),
                 esc(&now),
                 esc(&now),
-                esc(&params.liveness),
+                esc(&params.phase),
+                esc(&params.dignity),
             );
             Self::run_script_blocking(&db, &thought_script)?;
 
@@ -192,15 +192,15 @@ impl SamskaraMcp {
             }
 
             Ok::<String, String>(format!(
-                "Thought '{}' asserted with liveness '{}'",
-                params.id, params.liveness
+                "Thought '{}' asserted with phase '{}', dignity '{}'",
+                params.id, params.phase, params.dignity
             ))
         })
         .await;
 
         match result {
             Ok(Ok(msg)) => msg,
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
@@ -217,7 +217,7 @@ impl SamskaraMcp {
             Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
                 format!("{{\"error\": \"serialization failed: {e}\"}}")
             }),
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
@@ -239,12 +239,12 @@ impl SamskaraMcp {
             Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
                 format!("{{\"error\": \"serialization failed: {e}\"}}")
             }),
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
 
-    #[tool(description = "Query thoughts with optional filters. Excludes dead (superseded/disproven) by default.")]
+    #[tool(description = "Query thoughts with optional filters. Excludes archived (saturnus-phase) by default.")]
     async fn query_thoughts(
         &self,
         Parameters(params): Parameters<QueryThoughtsParams>,
@@ -252,8 +252,7 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let mut conditions = vec![
-                "liveness != \"superseded\"".to_string(),
-                "liveness != \"disproven\"".to_string(),
+                "phase != \"saturnus\"".to_string(),
             ];
 
             if let Some(ref kind) = params.kind {
@@ -265,8 +264,8 @@ impl SamskaraMcp {
 
             let base = if let Some(ref tag) = params.tag {
                 format!(
-                    "?[id, kind, scope, status, title, body, liveness] := \
-                     *thought{{id, kind, scope, status, title, body, liveness}}, \
+                    "?[id, kind, scope, status, title, body, phase, dignity] := \
+                     *thought{{id, kind, scope, status, title, body, phase, dignity}}, \
                      *thought_tag{{thought_id: id, tag: \"{}\"}}, \
                      {}",
                     tag.replace('"', "\\\""),
@@ -274,8 +273,8 @@ impl SamskaraMcp {
                 )
             } else {
                 format!(
-                    "?[id, kind, scope, status, title, body, liveness] := \
-                     *thought{{id, kind, scope, status, title, body, liveness}}, \
+                    "?[id, kind, scope, status, title, body, phase, dignity] := \
+                     *thought{{id, kind, scope, status, title, body, phase, dignity}}, \
                      {}",
                     conditions.join(", ")
                 )
@@ -289,12 +288,12 @@ impl SamskaraMcp {
             Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
                 format!("{{\"error\": \"serialization failed: {e}\"}}")
             }),
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
 
-    #[tool(description = "Commit the current world state. Computes blake3 content hash over all live relations, records world_commit and world_manifest.")]
+    #[tool(description = "Commit the current world state. Promotes luna→sol, computes blake3 content hash, records world_commit + manifest + snapshot/deltas.")]
     async fn commit_world(
         &self,
         Parameters(params): Parameters<CommitWorldParams>,
@@ -302,134 +301,38 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let now = chrono::Utc::now().to_rfc3339();
         let result = tokio::task::spawn_blocking(move || {
-            let mut manifest_entries: Vec<(String, usize, String)> = Vec::new();
-            let mut world_hasher = blake3::Hasher::new();
-
-            // Hash each versioned relation's live rows
-            for &rel_name in VERSIONED_RELATIONS {
-                // First get column names for this relation
-                let cols_result = Self::run_script_blocking(
-                    &db,
-                    &format!("::columns {rel_name}"),
-                ).map_err(|e| format!("failed to get columns for {rel_name}: {e}"))?;
-
-                let col_names: Vec<String> = cols_result
-                    .get("rows")
-                    .and_then(|r| r.as_array())
-                    .map(|rows| {
-                        rows.iter()
-                            .filter_map(|row| {
-                                row.as_array()
-                                    .and_then(|r| r.first())
-                                    .and_then(|v| v.get("Str"))
-                                    .and_then(|s| s.as_str())
-                                    .map(|s| s.to_string())
-                            })
-                            .collect()
-                    })
-                    .unwrap_or_default();
-
-                let col_list = col_names.join(", ");
-
-                // Build query for all rows, filtering dead ones for liveness-aware relations
-                let query = if has_liveness_column(rel_name) {
-                    format!(
-                        "?[{col_list}] := *{rel_name}{{{col_list}}}, \
-                         liveness != \"superseded\", liveness != \"disproven\"",
-                    )
-                } else {
-                    format!("?[{col_list}] := *{rel_name}{{{col_list}}}")
-                };
-
-                let rows = match Self::run_script_blocking(&db, &query) {
-                    Ok(v) => v,
-                    Err(e) => return Err(format!("failed to query {rel_name}: {e}")),
-                };
-
-                let rows_str = serde_json::to_string(&rows).unwrap_or_default();
-                let row_count = rows
-                    .get("rows")
-                    .and_then(|r| r.as_array())
-                    .map(|a| a.len())
-                    .unwrap_or(0);
-
-                let rel_hash = blake3::hash(rows_str.as_bytes());
-                let rel_hash_hex = rel_hash.to_hex().to_string();
-
-                world_hasher.update(rel_name.as_bytes());
-                world_hasher.update(rel_hash.as_bytes());
-
-                manifest_entries.push((rel_name.to_string(), row_count, rel_hash_hex));
-            }
-
-            let world_hash = world_hasher.finalize().to_hex().to_string();
-
-            // Find parent commit (latest existing)
-            let parent_result = Self::run_script_blocking(
-                &db,
-                "?[id, ts] := *world_commit{id, ts} :order -ts :limit 1",
-            );
-            let parent_id = parent_result
-                .ok()
-                .and_then(|v| {
-                    v.get("rows")
-                        .and_then(|r| r.as_array())
-                        .and_then(|a| a.first())
-                        .and_then(|row| row.as_array())
-                        .and_then(|r| r.first())
-                        .and_then(|id| id.as_str().map(|s| s.to_string()))
-                })
-                .unwrap_or_default();
-
             let session_id = params.session_id.unwrap_or_default();
-            let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+            let vcs = crate::vcs::WorldVcs::new(&db);
+            let commit_result = vcs.commit(crate::vcs::commit::CommitInput {
+                message: &params.message,
+                agent_id: &params.agent_id,
+                session_id: &session_id,
+                now: &now,
+            }).map_err(|e| e.to_string())?;
 
-            // Record world_commit
-            let commit_script = format!(
-                r#"?[id, parent_id, agent_id, session_id, message, ts, manifest_hash] <- [[
-                    "{}", "{}", "{}", "{}", "{}", "{}", "{}"
-                ]]
-                :put world_commit {{ id => parent_id, agent_id, session_id, message, ts, manifest_hash }}"#,
-                esc(&world_hash),
-                esc(&parent_id),
-                esc(&params.agent_id),
-                esc(&session_id),
-                esc(&params.message),
-                esc(&now),
-                esc(&world_hash),
-            );
-            Self::run_script_blocking(&db, &commit_script)?;
-
-            // Record world_manifest entries
-            for (rel_name, row_count, content_hash) in &manifest_entries {
-                let manifest_script = format!(
-                    r#"?[commit_id, relation_name, row_count, content_hash] <- [[
-                        "{}", "{}", {}, "{}"
-                    ]]
-                    :put world_manifest {{ commit_id, relation_name => row_count, content_hash }}"#,
-                    esc(&world_hash),
-                    rel_name,
-                    row_count,
-                    content_hash,
-                );
-                Self::run_script_blocking(&db, &manifest_script)?;
-            }
-
-            // Build summary
-            let summary: Vec<String> = manifest_entries
+            let summary: Vec<String> = commit_result
+                .manifest
                 .iter()
                 .map(|(name, count, hash)| {
                     format!("  {name}: {count} rows ({hash:.12}…)")
                 })
                 .collect();
 
-            Ok(format!(
-                "World committed: {world_hash}\nParent: {}\nManifest:\n{}",
-                if parent_id.is_empty() {
+            let snap_info = if commit_result.snapshot_taken {
+                " [snapshot taken]"
+            } else {
+                ""
+            };
+
+            Ok::<String, String>(format!(
+                "World committed: {}{snap_info}\nParent: {}\nDeltas: {}\nManifest:\n{}",
+                commit_result.world_hash,
+                if commit_result.parent_id.is_empty() {
                     "(genesis)"
                 } else {
-                    &parent_id
+                    &commit_result.parent_id
                 },
+                commit_result.delta_count,
                 summary.join("\n")
             ))
         })
@@ -437,16 +340,33 @@ impl SamskaraMcp {
 
         match result {
             Ok(Ok(msg)) => msg,
-            Ok(Err(e)) => format!("{{\"error\": {}}}", serde_json::json!(e)),
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
-}
 
-/// Relations that have a `liveness` column (and should filter out dead rows).
-fn has_liveness_column(rel: &str) -> bool {
-    matches!(
-        rel,
-        "thought" | "agent" | "agent_session" | "repo" | "repo_state" | "principle"
-    )
+    #[tool(description = "Restore the world state to a specific commit. Loads from snapshots + deltas.")]
+    async fn restore_world(
+        &self,
+        Parameters(params): Parameters<RestoreWorldParams>,
+    ) -> String {
+        let db = self.db.clone();
+        let result = tokio::task::spawn_blocking(move || {
+            let vcs = crate::vcs::WorldVcs::new(&db);
+            let restore_result = vcs.restore(&params.commit_id)
+                .map_err(|e| e.to_string())?;
+
+            Ok::<String, String>(format!(
+                "Restored to commit: {}\nRelations restored: {}",
+                restore_result.commit_id, restore_result.relations_restored,
+            ))
+        })
+        .await;
+
+        match result {
+            Ok(Ok(msg)) => msg,
+            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
+            Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+        }
+    }
 }

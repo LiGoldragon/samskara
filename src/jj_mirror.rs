@@ -209,67 +209,50 @@ pub fn fetch_diff(repo_path: &str, change_id: &str) -> Result<Vec<JjDiff>, Box<d
     Ok(diffs)
 }
 
-/// Write a JjCommit into the CozoDB as a `commit` relation.
-pub fn store_commit(db: &criome_cozo::CriomeDb, commit: &JjCommit) -> Result<(), Box<dyn std::error::Error>> {
-    let escaped_title = commit.title.replace('"', r#"\""#).replace('\\', r#"\\"#);
-    let escaped_body = commit.body.replace('"', r#"\""#).replace('\\', r#"\\"#);
-
-    let script = format!(
-        r#"?[change_id, commit_id, parent_change_id, author, ts, commit_type, title, body, live] <- [[
-            "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", true
-        ]]
-        :put commit {{ change_id => commit_id, parent_change_id, author, ts, commit_type, title, body, live }}"#,
-        commit.change_id, commit.commit_id, commit.parent_change_id,
-        commit.author, commit.ts, commit.commit_type.as_str(),
-        escaped_title, escaped_body
-    );
-    db.run_script(&script)?;
-    Ok(())
+/// Jujutsu mirror — stores jj commits and diffs into CozoDB.
+pub struct JjMirror<'a> {
+    db: &'a criome_cozo::CriomeDb,
 }
 
-/// Write a JjDiff into the CozoDB as a `commit_diff` relation.
-pub fn store_diff(db: &criome_cozo::CriomeDb, diff: &JjDiff) -> Result<(), Box<dyn std::error::Error>> {
-    let escaped = diff.diff_content.replace('"', r#"\""#).replace('\\', r#"\\"#);
-    let byte_count = diff.diff_content.len();
-
-    let script = format!(
-        r#"?[change_id, file_path, diff_content, diff_bytes] <- [[
-            "{}", "{}", "{}", {}
-        ]]
-        :put commit_diff {{ change_id, file_path => diff_content, diff_bytes }}"#,
-        diff.change_id, diff.file_path, escaped, byte_count
-    );
-    db.run_script(&script)?;
-    Ok(())
-}
-
-/// Seed the commit_type_vocab relation with all valid commit types.
-pub fn seed_commit_types(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>> {
-    let descriptions = [
-        ("draft", "Incomplete or exploratory change"),
-        ("proposal", "Suggested change for review"),
-        ("implementation", "Feature or capability implementation"),
-        ("testing", "Test additions or modifications"),
-        ("plan", "Architectural or implementation plan"),
-        ("review", "Code review feedback or response"),
-        ("refactor", "Structural improvement without behavior change"),
-        ("fix", "Bug fix or correction"),
-        ("session", "Session synthesis commit (aggregated intents)"),
-        ("intent", "Atomic single-intent change"),
-        ("release", "Release or version tag commit"),
-        ("merge", "Branch merge or integration"),
-    ];
-
-    for (name, desc) in &descriptions {
-        let script = format!(
-            r#"?[name, description] <- [["{}","{}"]]
-               :put commit_type_vocab {{ name => description }}"#,
-            name, desc
-        );
-        db.run_script(&script)?;
+impl<'a> JjMirror<'a> {
+    pub fn new(db: &'a criome_cozo::CriomeDb) -> Self {
+        Self { db }
     }
-    Ok(())
+
+    /// Write a JjCommit into the CozoDB as a `commit` relation.
+    pub fn store_commit(&self, commit: &JjCommit) -> Result<(), Box<dyn std::error::Error>> {
+        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+
+        let script = format!(
+            r#"?[change_id, commit_id, parent_change_id, author, ts, commit_type, title, body, phase, dignity] <- [[
+                "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "sol", "seen"
+            ]]
+            :put commit {{ change_id => commit_id, parent_change_id, author, ts, commit_type, title, body, phase, dignity }}"#,
+            esc(&commit.change_id), esc(&commit.commit_id), esc(&commit.parent_change_id),
+            esc(&commit.author), esc(&commit.ts), esc(commit.commit_type.as_str()),
+            esc(&commit.title), esc(&commit.body)
+        );
+        self.db.run_script(&script)?;
+        Ok(())
+    }
+
+    /// Write a JjDiff into the CozoDB as a `commit_diff` relation.
+    pub fn store_diff(&self, diff: &JjDiff) -> Result<(), Box<dyn std::error::Error>> {
+        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+        let byte_count = diff.diff_content.len();
+
+        let script = format!(
+            r#"?[change_id, file_path, diff_content, diff_bytes] <- [[
+                "{}", "{}", "{}", {}
+            ]]
+            :put commit_diff {{ change_id, file_path => diff_content, diff_bytes }}"#,
+            esc(&diff.change_id), esc(&diff.file_path), esc(&diff.diff_content), byte_count
+        );
+        self.db.run_script(&script)?;
+        Ok(())
+    }
 }
+
 
 #[cfg(test)]
 mod tests {
