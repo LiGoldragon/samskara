@@ -11,9 +11,10 @@
     };
     criome-cozo = { url = "github:LiGoldragon/criome-cozo"; flake = false; };
     samskara-lojix-contract = { url = "github:LiGoldragon/samskara-lojix-contract"; flake = false; };
+    samskara-codegen = { url = "github:LiGoldragon/samskara-codegen"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-lojix-contract, ... }:
+  outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-lojix-contract, samskara-codegen, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -33,10 +34,12 @@
           inherit src;
           pname = "samskara";
           # Place path deps where Cargo.toml expects them (../<dep>)
+          nativeBuildInputs = [ pkgs.capnproto ];
           postUnpack = ''
             depDir=$(dirname $sourceRoot)
             cp -rL ${criome-cozo} $depDir/criome-cozo
             cp -rL ${samskara-lojix-contract} $depDir/samskara-lojix-contract
+            cp -rL ${samskara-codegen} $depDir/samskara-codegen
           '';
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
@@ -56,7 +59,7 @@
         };
 
         devShells.default = craneLib.devShell {
-          packages = with pkgs; [ rust-analyzer sqlite ];
+          packages = with pkgs; [ rust-analyzer sqlite capnproto ];
         };
       }
     );

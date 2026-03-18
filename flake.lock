@@ -93,6 +93,7 @@
         "fenix": "fenix",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
+        "samskara-codegen": "samskara-codegen",
         "samskara-lojix-contract": "samskara-lojix-contract"
       }
     },
@@ -110,6 +111,22 @@
         "owner": "rust-lang",
         "ref": "nightly",
         "repo": "rust-analyzer",
+        "type": "github"
+      }
+    },
+    "samskara-codegen": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1774024887,
+        "narHash": "sha256-XaNQUeq3rbRyhbdNWrRNsBriZBNt08UFpDmKS+m3NP0=",
+        "owner": "LiGoldragon",
+        "repo": "samskara-codegen",
+        "rev": "9bce68531fd6d0334070a8d19216b6acbce052e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LiGoldragon",
+        "repo": "samskara-codegen",
         "type": "github"
       }
     },
