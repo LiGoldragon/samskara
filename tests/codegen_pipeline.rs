@@ -9,7 +9,7 @@ fn is_comment_only(stmt: &str) -> bool {
 }
 
 fn load_script(db: &criome_cozo::CriomeDb, script: &str) {
-    for stmt in criome_cozo::split_cozo_statements(script) {
+    for stmt in criome_cozo::Script::from_str(script) {
         let trimmed = stmt.trim();
         if !trimmed.is_empty() && !is_comment_only(trimmed) {
             db.run_script(trimmed)
