@@ -4,11 +4,12 @@ use clap::Parser;
 use std::path::PathBuf;
 
 /// Returns true if the statement is only comments (no executable CozoScript).
+/// Handles `#` comments and `//` section separators (COZO_PATTERNS convention).
 fn is_comment_only(stmt: &str) -> bool {
     stmt.lines()
         .all(|line| {
             let trimmed = line.trim();
-            trimmed.is_empty() || trimmed.starts_with('#')
+            trimmed.is_empty() || trimmed.starts_with('#') || trimmed == "//"
         })
 }
 
