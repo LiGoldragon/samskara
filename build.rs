@@ -22,8 +22,10 @@ fn load_script(db: &criome_cozo::CriomeDb, script: &str) {
 fn main() {
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
 
-    // Open in-memory CriomeDb, load schema + seed from their authoritative files
+    // Open in-memory CriomeDb, load core + domain schema + seed
     let db = criome_cozo::CriomeDb::open_memory().expect("open memory db for codegen");
+    load_script(&db, samskara_core::boot::CORE_WORLD_INIT);
+    load_script(&db, samskara_core::boot::CORE_WORLD_SEED);
     load_script(&db, include_str!("schema/samskara-world-init.cozo"));
     load_script(&db, include_str!("schema/samskara-world-seed.cozo"));
 

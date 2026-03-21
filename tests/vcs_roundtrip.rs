@@ -49,8 +49,8 @@ fn full_vcs_roundtrip() {
     let db = criome_cozo::CriomeDb::open_memory().expect("open memory db");
 
     // Load core schema (Phase, Dignity, world_schema, VCS relations)
-    load_script(&db, include_str!("../../samskara-core/schema/core-world-init.cozo"));
-    load_script(&db, include_str!("../../samskara-core/schema/core-world-seed.cozo"));
+    load_script(&db, samskara_core::boot::CORE_WORLD_INIT);
+    load_script(&db, samskara_core::boot::CORE_WORLD_SEED);
 
     // Load domain schema + seed
     load_script(&db, include_str!("../schema/samskara-world-init.cozo"));

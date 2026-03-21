@@ -201,6 +201,26 @@
   dignity: String
 }
 
+#── Source provenance layer ─────────────────────────────────────────
+
+:create SourceType {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create source {
+  id: String =>
+  source_type: String,
+  url: String,
+  ref: String,
+  hash: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
 #── Schema self-description layer ──────────────────────────────────
 #world_schema is created by samskara-core during core_genesis.
 

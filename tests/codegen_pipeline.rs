@@ -25,8 +25,8 @@ fn full_pipeline_samskara_world() {
     let db = criome_cozo::CriomeDb::open_memory().expect("open memory db");
 
     // Load core schema first (Phase, Dignity, world_schema, VCS)
-    load_script(&db, include_str!("../../samskara-core/schema/core-world-init.cozo"));
-    load_script(&db, include_str!("../../samskara-core/schema/core-world-seed.cozo"));
+    load_script(&db, samskara_core::boot::CORE_WORLD_INIT);
+    load_script(&db, samskara_core::boot::CORE_WORLD_SEED);
 
     // Load domain schema and seed
     load_script(&db, include_str!("../schema/samskara-world-init.cozo"));

@@ -12,7 +12,8 @@
   ["Sign",       "Twelve zodiacal signs"],
   ["Planet",     "Seven classical planets + nodes"],
   ["Rulership",  "Planet-Sign dignity assignments — domicile/exaltation/detriment/fall"],
-  ["Aspect",     "Geometric relationships between signs"]
+  ["Aspect",     "Geometric relationships between signs"],
+  ["SourceType", "Fetcher types for external sources — mirrors Nix fetchurl/fetchgit/etc"]
 ]
 :put Enum { name => description }
 
@@ -246,6 +247,20 @@
   ["saturn", "aries", "fall", "manifest", "eternal"]
 ]
 :put Rulership { planet, sign, dignity_type => phase, dignity }
+
+#── SourceType seed ────────────────────────────────────────────────────
+
+?[name, description, phase, dignity] <- [
+  ["github", "GitHub repository — owner/repo format", "manifest", "eternal"],
+  ["gitlab", "GitLab repository — owner/repo format", "manifest", "eternal"],
+  ["sourcehut", "SourceHut repository — ~owner/repo format", "manifest", "eternal"],
+  ["git", "Generic git URL — any git remote", "manifest", "eternal"],
+  ["tarball", "Tarball URL — .tar.gz/.tar.xz/.tar.bz2", "manifest", "eternal"],
+  ["file", "Single file URL — direct download", "manifest", "eternal"],
+  ["path", "Local filesystem path", "manifest", "eternal"],
+  ["annas_archive", "Anna's Archive — MD5 identifies content", "manifest", "eternal"]
+]
+:put SourceType { name => description, phase, dignity }
 
 #── Aspect seed ────────────────────────────────────────────────────────
 
