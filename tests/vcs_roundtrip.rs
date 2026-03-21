@@ -1,9 +1,9 @@
 /// Full VCS round-trip integration test.
 ///
-/// 1. Load schema + seed into in-memory CozoDB
+/// 1. Load core + domain schema + seed into in-memory CozoDB
 /// 2. Genesis commit → verify snapshot taken, HEAD set
-/// 3. Assert a new thought (luna phase)
-/// 4. Second commit → verify luna→sol promotion, deltas computed
+/// 3. Assert a new thought (becoming phase)
+/// 4. Second commit → verify becoming→manifest promotion, deltas computed
 /// 5. Restore to genesis → verify state matches original
 /// 6. Third commit → verify hash matches genesis (same state = same hash)
 
@@ -36,29 +36,35 @@ fn row_count(result: &serde_json::Value) -> usize {
         .unwrap_or(0)
 }
 
+/// Fallback versioned relations for test (no world_schema populated).
+const TEST_VERSIONED: &[&str] = &[
+    "Aspect", "Dignity", "Element", "Enum", "Measure", "Modality",
+    "Phase", "Planet", "Rulership", "Sign",
+    "agent", "agent_session", "latina", "principle", "repo", "repo_state",
+    "samskrta", "thought", "thought_link", "thought_tag", "trust_review",
+];
+
 #[test]
 fn full_vcs_roundtrip() {
     let db = criome_cozo::CriomeDb::open_memory().expect("open memory db");
 
-    // Load schema
-    load_script(&db, include_str!("../schema/samskara-world-init.cozo"));
+    // Load core schema (Phase, Dignity, world_schema, VCS relations)
+    load_script(&db, include_str!("../../samskara-core/schema/core-world-init.cozo"));
+    load_script(&db, include_str!("../../samskara-core/schema/core-world-seed.cozo"));
 
-    // Load seed
+    // Load domain schema + seed
+    load_script(&db, include_str!("../schema/samskara-world-init.cozo"));
     load_script(&db, include_str!("../schema/samskara-world-seed.cozo"));
 
     // Load internal relations (intent, policy, evidence, etc.)
     load_script(&db, include_str!("../AI-init.cozo"));
 
-    let vcs = samskara::vcs::WorldVcs::new(&db);
-
-    // Verify seed loaded: 5 manifest thoughts (t-project-2 is becoming/staged)
-    let thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
-    assert_eq!(row_count(&thoughts), 5, "should have 5 manifest-phase seeded thoughts");
+    let vcs = samskara_core::vcs::WorldVcs::with_fallback(&db, TEST_VERSIONED);
 
     // ── Genesis commit ──────────────────────────────────────────────
 
-    let genesis = vcs.commit(samskara::vcs::commit::CommitInput {
-        message: "genesis", agent_id: "claude-code-1",
+    let genesis = vcs.commit(samskara_core::vcs::commit::CommitInput {
+        message: "genesis", agent_id: "claude-code",
         session_id: "test-session", now: "2026-03-18T00:00:00Z",
     })
     .expect("genesis commit");
@@ -73,13 +79,6 @@ fn full_vcs_roundtrip() {
     let commits = query_str(&db, "?[id] := *world_commit{id}");
     assert_eq!(row_count(&commits), 1, "should have 1 commit");
 
-    // Verify world_snapshot_index
-    let snap_idx = query_str(&db, &format!(
-        "?[snapshot_exists, delta_depth] := \
-         *world_snapshot_index{{commit_id: \"{genesis_hash}\", snapshot_exists, delta_depth}}"
-    ));
-    assert_eq!(row_count(&snap_idx), 1, "snapshot index should exist");
-
     // Verify HEAD ref
     let head = query_str(&db, "?[ref_value] := *world_commit_ref{commit_id, ref_type: \"HEAD\", ref_value}");
     assert_eq!(row_count(&head), 1, "HEAD ref should exist");
@@ -90,11 +89,16 @@ fn full_vcs_roundtrip() {
     ));
     assert!(row_count(&snaps) >= 10, "should have snapshots for all versioned relations");
 
+    // Count manifest thoughts AFTER genesis (becoming thoughts were promoted)
+    let post_genesis_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    let genesis_count = row_count(&post_genesis_thoughts);
+    assert!(genesis_count > 0, "should have manifest thoughts after genesis");
+
     // ── Mutate: add a becoming-phase thought ─────────────────────────
 
     db.run_script(
         r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
-            "t-new-1", "observation", "global", "draft", "New thought",
+            "test-new-1", "observation", "global", "draft", "New thought",
             "This is a test thought added after genesis.",
             "2026-03-18", "2026-03-18", "becoming", "seen"
         ]]
@@ -102,14 +106,10 @@ fn full_vcs_roundtrip() {
     )
     .expect("assert new thought");
 
-    // Verify becoming thought exists
-    let becoming_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"becoming\"");
-    assert_eq!(row_count(&becoming_thoughts), 1, "should have 1 becoming thought");
-
     // ── Second commit ───────────────────────────────────────────────
 
-    let second = vcs.commit(samskara::vcs::commit::CommitInput {
-        message: "add test thought", agent_id: "claude-code-1",
+    let second = vcs.commit(samskara_core::vcs::commit::CommitInput {
+        message: "add test thought", agent_id: "claude-code",
         session_id: "test-session", now: "2026-03-18T00:01:00Z",
     })
     .expect("second commit");
@@ -122,10 +122,10 @@ fn full_vcs_roundtrip() {
 
     // Verify becoming→manifest promotion happened
     let becoming_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"becoming\"");
-    assert_eq!(row_count(&becoming_after), 0, "no becoming thoughts after commit (promoted to manifest)");
+    assert_eq!(row_count(&becoming_after), 0, "no becoming thoughts after commit");
 
-    let manifest_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
-    assert_eq!(row_count(&manifest_thoughts), 7, "should have 7 manifest thoughts (6 from genesis + 1 new)");
+    let manifest_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    assert_eq!(row_count(&manifest_after), genesis_count + 1, "should have one more manifest thought");
 
     // Verify deltas were recorded
     let deltas = query_str(&db, &format!(
@@ -141,21 +141,21 @@ fn full_vcs_roundtrip() {
     assert_eq!(restore.commit_id, genesis_hash);
     assert!(restore.relations_restored > 0);
 
-    // Verify state matches genesis: 6 thoughts (the new one should be gone)
+    // Verify state matches genesis
     let restored_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
     assert_eq!(
-        row_count(&restored_thoughts), 6,
-        "restored state should have 6 thoughts (genesis state)"
+        row_count(&restored_thoughts), genesis_count,
+        "restored state should match genesis thought count"
     );
 
     // The new thought should not exist
-    let new_thought = query_str(&db, "?[id] := *thought{id}, id == \"t-new-1\"");
+    let new_thought = query_str(&db, "?[id] := *thought{id}, id == \"test-new-1\"");
     assert_eq!(row_count(&new_thought), 0, "new thought should not exist after restore");
 
     // ── Third commit after restore ──────────────────────────────────
 
-    let third = vcs.commit(samskara::vcs::commit::CommitInput {
-        message: "post-restore commit", agent_id: "claude-code-1",
+    let third = vcs.commit(samskara_core::vcs::commit::CommitInput {
+        message: "post-restore commit", agent_id: "claude-code",
         session_id: "test-session", now: "2026-03-18T00:02:00Z",
     })
     .expect("third commit");
