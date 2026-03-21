@@ -228,6 +228,19 @@
   dignity: String
 }
 
+#── Schema self-description layer ──────────────────────────────────
+#world_schema records every relation's definition. The DB describes itself.
+#Schema changes go through the becoming→manifest pipeline like everything else.
+#A delusion-dignity entry is never materialized — it's a warning record.
+
+:create world_schema {
+  relation_name: String =>
+  create_script: String,
+  origin: String,
+  phase: String,
+  dignity: String
+}
+
 #── Version control layer ───────────────────────────────────────────
 #These relations are meta-level: they track the state of all other
 #relations. They do not carry phase/dignity — they are infrastructure.

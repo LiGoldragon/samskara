@@ -47,6 +47,104 @@ fn is_initialized(db: &criome_cozo::CriomeDb) -> bool {
     db.run_script("::columns meta").is_ok()
 }
 
+/// Ontological bedrock — these relations are eternal dignity.
+const ETERNAL_RELATIONS: &[&str] = &[
+    "Aspect", "Dignity", "Element", "Enum", "Measure", "Modality",
+    "Phase", "Planet", "Sign",
+];
+
+/// Reconstruct a `:create` statement from `::columns` output for a relation.
+fn create_script_for(
+    db: &criome_cozo::CriomeDb,
+    rel: &str,
+) -> Result<String, Box<dyn std::error::Error>> {
+    let result = db.run_script(&format!("::columns {rel}"))?;
+    let rows = result["rows"]
+        .as_array()
+        .ok_or("no columns rows")?;
+
+    let mut keys = Vec::new();
+    let mut vals = Vec::new();
+
+    for row in rows {
+        let arr = row.as_array().ok_or("bad column row")?;
+        let name = arr[0]
+            .get("Str").and_then(|s| s.as_str())
+            .or_else(|| arr[0].as_str())
+            .ok_or("no column name")?;
+        let is_key = arr[1]
+            .get("Bool").and_then(|b| b.as_bool())
+            .or_else(|| arr[1].as_bool())
+            .unwrap_or(false);
+        let col_type = arr[3]
+            .get("Str").and_then(|s| s.as_str())
+            .or_else(|| arr[3].as_str())
+            .ok_or("no column type")?;
+
+        let col_def = format!("{name}: {col_type}");
+        if is_key {
+            keys.push(col_def);
+        } else {
+            vals.push(col_def);
+        }
+    }
+
+    let body = if vals.is_empty() {
+        keys.join(", ")
+    } else {
+        format!("{} => {}", keys.join(", "), vals.join(", "))
+    };
+
+    Ok(format!(":create {rel} {{ {body} }}"))
+}
+
+/// Populate world_schema by introspecting all relations in the database.
+fn populate_world_schema(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>> {
+    let relations = db.run_script("::relations")?;
+    let rows = relations["rows"]
+        .as_array()
+        .ok_or("no relations rows")?;
+
+    for row in rows {
+        let name = row.as_array()
+            .and_then(|a| a[0].get("Str").and_then(|s| s.as_str()).or_else(|| a[0].as_str()))
+            .ok_or("no relation name")?;
+
+        // Skip world_schema itself — it's the one writing
+        if name == "world_schema" {
+            continue;
+        }
+
+        let script = create_script_for(db, name)?;
+        let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+
+        let dignity = if ETERNAL_RELATIONS.contains(&name) {
+            "eternal"
+        } else {
+            "proven"
+        };
+
+        let origin = if ["transpiler_version", "eval_request", "eval_result"]
+            .contains(&name) {
+            "contract"
+        } else {
+            "genesis"
+        };
+
+        let put = format!(
+            r#"?[relation_name, create_script, origin, phase, dignity] <- [[
+                "{}", "{}", "{}", "manifest", "{}"
+            ]]
+            :put world_schema {{ relation_name => create_script, origin, phase, dignity }}"#,
+            esc(name), esc(&script), origin, dignity,
+        );
+        db.run_script(&put)?;
+    }
+
+    tracing::info!("world_schema populated with all relation definitions");
+    Ok(())
+}
+
 /// Run the full genesis sequence: create all relations and load seed data.
 /// Only runs on a fresh (uninitialized) database.
 fn genesis(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>> {
@@ -68,7 +166,10 @@ fn genesis(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>>
     load_cozo_script(db, include_str!("../schema/samskara-world-seed.cozo"))?;
     tracing::info!("samskara-world seed loaded");
 
-    // 5. Finalize: create meta sentinel (must be last)
+    // 5. Populate world_schema by introspecting all relations
+    populate_world_schema(db)?;
+
+    // 6. Finalize: create meta sentinel (must be last)
     db.run_script(":create meta { key: String => value: String }")?;
     db.run_script(r#"?[key, value] <- [["schema_version", "1"]] :put meta { key => value }"#)?;
     tracing::info!("genesis complete — meta sentinel written");
