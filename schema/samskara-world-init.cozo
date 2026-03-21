@@ -7,37 +7,6 @@
   description: String
 }
 
-#── Phase vocabulary ─────────────────────────────────────────────────
-#Every relation that participates in the world state carries a
-#`phase: String` column encoding its lifecycle position, and a
-#`dignity: String` column encoding its trust level.
-#These two axes are orthogonal: any combination is valid.
-//
-#Phase (lifecycle tri-state):
-#  manifest  — current, active — what IS
-#  becoming  — staged, proposed — what is being considered
-#  retired   — archived, superseded — what WAS
-//
-#Dignity (trust level):
-#  eternal     — immutable, always-true
-#  proven      — accomplished, verified
-#  seen        — witnessed, observed (default)
-#  uncertain   — doubt, unverified
-#  delusion    — error, mistaking rope for snake
-
-:create Phase {
-  name: String =>
-  glyph: String,
-  in_world_hash: Bool,
-  description: String
-}
-
-:create Dignity {
-  name: String =>
-  rank: Int,
-  description: String
-}
-
 #── Commit message enums ──────────────────────────────────────────────
 #A commit message is a tuple of three tuples — manifest/becoming/retired:
 #  (manifest: identity)    (CommitType) or (CommitType, scope)
@@ -229,17 +198,7 @@
 }
 
 #── Schema self-description layer ──────────────────────────────────
-#world_schema records every relation's definition. The DB describes itself.
-#Schema changes go through the becoming→manifest pipeline like everything else.
-#A delusion-dignity entry is never materialized — it's a warning record.
-
-:create world_schema {
-  relation_name: String =>
-  create_script: String,
-  origin: String,
-  phase: String,
-  dignity: String
-}
+#world_schema is created by samskara-core during core_genesis.
 
 #── Documentation layer ────────────────────────────────────────────
 #Structured categorical documentation for every relation. Three layers:
@@ -288,56 +247,7 @@
   dignity: String
 }
 
-#── Version control layer ───────────────────────────────────────────
-#These relations are meta-level: they track the state of all other
-#relations. They do not carry phase/dignity — they are infrastructure.
-
-:create world_commit {
-  id: String =>
-  parent_id: String,
-  agent_id: String,
-  session_id: String,
-  message: String,
-  ts: String,
-  manifest_hash: String
-}
-
-:create world_manifest {
-  commit_id: String,
-  relation_name: String =>
-  row_count: Int,
-  content_hash: String
-}
-
-:create world_delta {
-  commit_id: String,
-  seq: Int =>
-  relation_name: String,
-  operation: String,
-  row_key: String,
-  row_data: String
-}
-
-:create world_snapshot {
-  commit_id: String,
-  relation_name: String =>
-  data: String,
-  reader_version: String,
-  byte_count: Int
-}
-
-:create world_snapshot_index {
-  commit_id: String =>
-  snapshot_exists: Bool,
-  nearest_snapshot_id: String,
-  delta_depth: Int
-}
-
-:create world_commit_ref {
-  commit_id: String,
-  ref_type: String =>
-  ref_value: String
-}
+#VCS relations (world_commit, world_manifest, etc.) are created by samskara-core.
 
 #── Archive layer ───────────────────────────────────────────────────
 #Cap'n Proto reader version registry. Headers stored once per schema
@@ -350,18 +260,4 @@
   capnp_schema: String
 }
 
-#── Content-addressed blob index ───────────────────────────────────
-#Index for criome-store. Blobs live on disk at ~/.criome/store,
-#addressed by blake3 hash. This relation is the only way to discover
-#what is in the store.
-
-:create blob {
-  hash: String =>
-  size: Int,
-  compressed_size: Int,
-  media_type: String,
-  origin: String,
-  origin_ref: String,
-  phase: String,
-  dignity: String
-}
+#blob relation belongs to criome-stored, not samskara.
