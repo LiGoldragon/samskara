@@ -97,7 +97,7 @@
   ["criome-cozo",              "LiGoldragon/criome-cozo",              "CozoDB wrapper crate (leaf dependency)",                  "",                                       "manifest", "proven"],
   ["samskara-lojix-contract",  "LiGoldragon/samskara-lojix-contract",  "Shared datalog relation schemas between agents",          "criome-cozo",                            "manifest", "proven"],
   ["samskara",                 "LiGoldragon/samskara",                 "Pure datalog agent — sees only relations",                "criome-cozo,samskara-lojix-contract",    "manifest", "proven"],
-  ["lojix",                    "LiGoldragon/lojix",                    "DSL transpiler (TS phase 1, Rust phase 2)",               "criome-cozo,samskara-lojix-contract",    "manifest", "proven"],
+  ["lojix",                    "Criome/lojix",                    "DSL transpiler (TS phase 1, Rust phase 2)",               "criome-cozo,samskara-lojix-contract",    "manifest", "proven"],
   ["Mentci",                   "LiGoldragon/Mentci",                   "Workspace (flake + dev shell + docs + samskara-world)",   "",                                       "manifest", "proven"]
 ]
 :put repo { name => github, purpose, depends_on, phase, dignity }
