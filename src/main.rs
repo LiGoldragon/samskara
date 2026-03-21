@@ -33,12 +33,47 @@ fn load_cozo_script(
 #[command(name = "samskara", about = "Pure datalog agent — MCP server mode")]
 struct Args {
     /// Path to the sqlite-backed CozoDB database.
-    #[arg(value_name = "DB_PATH")]
+    /// Defaults to "world.db" in the current directory.
+    #[arg(long, value_name = "DB_PATH")]
     db_path: Option<PathBuf>,
 
     /// Use an in-memory database instead of sqlite.
     #[arg(long)]
     memory: bool,
+}
+
+/// Check if the database has already been initialized by looking for the meta relation.
+fn is_initialized(db: &criome_cozo::CriomeDb) -> bool {
+    db.run_script("::columns meta").is_ok()
+}
+
+/// Run the full genesis sequence: create all relations and load seed data.
+/// Only runs on a fresh (uninitialized) database.
+fn genesis(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>> {
+    tracing::info!("fresh database — running genesis");
+
+    // 1. Contract relations (Samskara <-> Lojix interface)
+    samskara_lojix_contract::init(db)?;
+    tracing::info!("contract relations loaded");
+
+    // 2. Internal relations
+    load_cozo_script(db, include_str!("../AI-init.cozo"))?;
+    tracing::info!("internal relations loaded");
+
+    // 3. World schema
+    load_cozo_script(db, include_str!("../schema/samskara-world-init.cozo"))?;
+    tracing::info!("samskara-world relations created");
+
+    // 4. Seed data
+    load_cozo_script(db, include_str!("../schema/samskara-world-seed.cozo"))?;
+    tracing::info!("samskara-world seed loaded");
+
+    // 5. Finalize: create meta sentinel (must be last)
+    db.run_script(":create meta { key: String => value: String }")?;
+    db.run_script(r#"?[key, value] <- [["schema_version", "1"]] :put meta { key => value }"#)?;
+    tracing::info!("genesis complete — meta sentinel written");
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -55,31 +90,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let args = Args::parse();
 
-    // Open CriomeDb
-    let db = if args.memory || args.db_path.is_none() {
+    // Open CriomeDb — default to world.db in current directory
+    let db = if args.memory {
         tracing::info!("opening in-memory db");
         criome_cozo::CriomeDb::open_memory()?
     } else {
-        let path = args.db_path.as_ref().unwrap();
+        let path = args.db_path.unwrap_or_else(|| PathBuf::from("world.db"));
         tracing::info!("opening sqlite db at {}", path.display());
-        criome_cozo::CriomeDb::open_sqlite(path)?
+        criome_cozo::CriomeDb::open_sqlite(&path)?
     };
 
-    // Load contract relations (Samskara <-> Lojix interface)
-    samskara_lojix_contract::init(&db)?;
-    tracing::info!("contract relations loaded");
-
-    // Load internal relations
-    load_cozo_script(&db, include_str!("../AI-init.cozo"))?;
-    tracing::info!("internal relations loaded");
-
-    // Load samskara-world schema
-    load_cozo_script(&db, include_str!("../schema/samskara-world-init.cozo"))?;
-    tracing::info!("samskara-world relations created");
-
-    // Load seed data
-    load_cozo_script(&db, include_str!("../schema/samskara-world-seed.cozo"))?;
-    tracing::info!("samskara-world seed loaded");
+    // Idempotent boot: only run genesis on a fresh database
+    if is_initialized(&db) {
+        tracing::info!("database already initialized — skipping genesis");
+    } else {
+        genesis(&db)?;
+    }
 
     // List all relations
     let relations = db.run_script("::relations")?;
