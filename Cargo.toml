@@ -35,4 +35,3 @@ capnpc = "0.21"
 [dev-dependencies]
 rmcp = { version = "0.16", features = ["client", "transport-io"] }
 samskara-codegen = { path = "../samskara-codegen" }
-# force rebuild
