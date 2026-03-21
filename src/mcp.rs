@@ -15,13 +15,6 @@ use criome_cozo::CriomeDb;
 pub struct QueryParams {
     /// CozoScript to execute against the world database
     pub script: String,
-    /// Pretty-print with column alignment (default: true). Set false for raw cozo tuples.
-    #[serde(default = "default_pretty")]
-    pub pretty: bool,
-}
-
-fn default_pretty() -> bool {
-    true
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -134,13 +127,12 @@ impl ServerHandler for SamskaraMcp {
 
 #[tool_router]
 impl SamskaraMcp {
-    #[tool(description = "Execute CozoScript against the world database. Returns CozoScript tuples. Set pretty=false for raw compact output.")]
+    #[tool(description = "Execute CozoScript against the world database. Returns CozoScript tuples.")]
     async fn query(&self, Parameters(params): Parameters<QueryParams>) -> String {
         let db = self.db.clone();
         let script = params.script;
-        let pretty = params.pretty;
         let result = tokio::task::spawn_blocking(move || {
-            db.run_script_cozo(&script, pretty)
+            db.run_script_cozo(&script)
                 .map_err(|e| e.to_string())
         })
         .await;
@@ -210,7 +202,7 @@ impl SamskaraMcp {
     async fn list_relations(&self) -> String {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
-            db.run_script_cozo("::relations", true)
+            db.run_script_cozo("::relations")
                 .map_err(|e| e.to_string())
         })
         .await;
@@ -231,7 +223,7 @@ impl SamskaraMcp {
         let name = params.name;
         let result = tokio::task::spawn_blocking(move || {
             let script = format!("::columns {name}");
-            db.run_script_cozo(&script, true)
+            db.run_script_cozo(&script)
                 .map_err(|e| e.to_string())
         })
         .await;
@@ -279,7 +271,7 @@ impl SamskaraMcp {
                 )
             };
 
-            db.run_script_cozo(&base, true)
+            db.run_script_cozo(&base)
                 .map_err(|e| e.to_string())
         })
         .await;
