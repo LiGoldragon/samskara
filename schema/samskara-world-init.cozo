@@ -11,18 +11,19 @@
 #Every relation that participates in the world state carries a
 #`phase: String` column encoding its lifecycle position, and a
 #`dignity: String` column encoding its trust level.
+#These two axes are orthogonal: any combination is valid.
 //
-#Phase (the planetary tri-state, from the 2→3 ontological chain):
-#  sol       — ☉ manifest truth, in the world hash
-#  luna      — ☽ becoming, staged, not yet committed
-#  saturnus  — ♄ archived, superseded, retained in the ledger
+#Phase (lifecycle tri-state):
+#  manifest  — current, active — what IS
+#  becoming  — staged, proposed — what is being considered
+#  retired   — archived, superseded — what WAS
 //
-#Dignity (trust level — saṃskṛta: nitya/siddha/dṛṣṭa/sandeha/bhrama):
-#  eternal     — nitya: immutable, always-true
-#  proven      — siddha: accomplished, verified
-#  seen        — dṛṣṭa: witnessed, observed (default)
-#  uncertain   — sandeha: doubt, unverified
-#  delusion    — bhrama: error, mistaking rope for snake
+#Dignity (trust level):
+#  eternal     — immutable, always-true
+#  proven      — accomplished, verified
+#  seen        — witnessed, observed (default)
+#  uncertain   — doubt, unverified
+#  delusion    — error, mistaking rope for snake
 
 :create Phase {
   name: String =>
@@ -38,10 +39,10 @@
 }
 
 #── Commit message enums ──────────────────────────────────────────────
-#A commit message is a tuple of three tuples — Sol/Luna/Saturnus:
-#  (Sol: identity)        (CommitType) or (CommitType, scope)
-#  (Luna: transformation) (Action, "what transformed")
-#  (Saturnus: context)    (Verdict, "why") or ()
+#A commit message is a tuple of three tuples — manifest/becoming/retired:
+#  (manifest: identity)    (CommitType) or (CommitType, scope)
+#  (becoming: transformation) (Action, "what transformed")
+#  (retired: context)      (Verdict, "why") or ()
 
 :create CommitType {
   name: String =>
@@ -58,13 +59,24 @@
   description: String
 }
 
-#── Saṃskṛta equivalence layer ─────────────────────────────────────
-#Maps core English terms to their Vedic/Saṃskṛta roots.
-#domain: which relation or concept the term belongs to.
+#── Classical language equivalence layers ──────────────────────────
+#Each classical language gets its own relation mapping English primary
+#names to that language's terms. English is always the operational
+#identifier; these relations preserve etymological provenance.
+//
+#samskrta: Sanskrit equivalents (Vedic/Saṃskṛta roots)
+#latina:   Latin equivalents (planetary/astronomical tradition)
 
 :create samskrta {
   term: String =>
   samskrta: String,
+  domain: String,
+  meaning: String
+}
+
+:create latina {
+  term: String =>
+  latina: String,
   domain: String,
   meaning: String
 }

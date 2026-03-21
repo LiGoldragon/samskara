@@ -31,7 +31,7 @@ pub struct AssertThoughtParams {
     pub title: String,
     /// Full body text
     pub body: String,
-    /// Phase: luna (staged), sol (manifest), saturnus (archived)
+    /// Phase: becoming (staged), manifest (current), retired (archived)
     #[schemars(default = "default_phase")]
     #[serde(default = "default_phase")]
     pub phase: String,
@@ -45,7 +45,7 @@ pub struct AssertThoughtParams {
 }
 
 fn default_phase() -> String {
-    "luna".to_string()
+    "becoming".to_string()
 }
 
 fn default_dignity() -> String {
@@ -63,7 +63,7 @@ pub struct QueryThoughtsParams {
     /// Filter by tag
     #[serde(default)]
     pub tag: Option<String>,
-    /// Filter by phase (luna, sol, saturnus). Default: exclude saturnus.
+    /// Filter by phase (becoming, manifest, retired). Default: exclude retired.
     #[serde(default)]
     pub phase: Option<String>,
 }
@@ -244,7 +244,7 @@ impl SamskaraMcp {
         }
     }
 
-    #[tool(description = "Query thoughts with optional filters. Excludes archived (saturnus-phase) by default.")]
+    #[tool(description = "Query thoughts with optional filters. Excludes retired-phase by default.")]
     async fn query_thoughts(
         &self,
         Parameters(params): Parameters<QueryThoughtsParams>,
@@ -252,7 +252,7 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let mut conditions = vec![
-                "phase != \"saturnus\"".to_string(),
+                "phase != \"retired\"".to_string(),
             ];
 
             if let Some(ref kind) = params.kind {
@@ -293,7 +293,7 @@ impl SamskaraMcp {
         }
     }
 
-    #[tool(description = "Commit the current world state. Promotes luna→sol, computes blake3 content hash, records world_commit + manifest + snapshot/deltas.")]
+    #[tool(description = "Commit the current world state. Promotes becoming→manifest, computes blake3 content hash, records world_commit + manifest + snapshot/deltas.")]
     async fn commit_world(
         &self,
         Parameters(params): Parameters<CommitWorldParams>,

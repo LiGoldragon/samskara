@@ -21,6 +21,7 @@ pub const VERSIONED_RELATIONS: &[&str] = &[
     "Sign",
     "agent",
     "agent_session",
+    "latina",
     "principle",
     "repo",
     "repo_state",
@@ -34,7 +35,7 @@ pub const VERSIONED_RELATIONS: &[&str] = &[
 /// Number of commits between full snapshots.
 pub const SNAPSHOT_INTERVAL: u32 = 10;
 
-/// Relations that have a `phase` column (and should filter to sol-phase only).
+/// Relations that have a `phase` column (and should filter to manifest-phase only).
 pub fn has_phase_column(rel: &str) -> bool {
     matches!(
         rel,

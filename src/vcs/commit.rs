@@ -21,10 +21,10 @@ pub struct CommitResult {
 }
 
 impl WorldVcs<'_> {
-    /// Perform a full world commit (saṅkalpa): promote luna→sol, hash state,
+    /// Perform a full world commit (saṅkalpa): promote becoming→manifest, hash state,
     /// record commit + manifest, optionally snapshot, compute deltas.
     pub fn commit(&self, input: CommitInput) -> Result<CommitResult, Error> {
-        self.promote_luna_to_sol()?;
+        self.promote_becoming_to_manifest()?;
 
         let (manifest_entries, relation_data, world_hash) = self.hash_world_state()?;
 
@@ -72,8 +72,8 @@ impl WorldVcs<'_> {
         })
     }
 
-    /// Promote all luna-phase rows to sol across phase-aware relations.
-    fn promote_luna_to_sol(&self) -> Result<(), Error> {
+    /// Promote all becoming-phase rows to manifest across phase-aware relations.
+    fn promote_becoming_to_manifest(&self) -> Result<(), Error> {
         for &rel in VERSIONED_RELATIONS {
             if !has_phase_column(rel) {
                 continue;
@@ -82,7 +82,7 @@ impl WorldVcs<'_> {
             let col_list = col_names.join(", ");
 
             let query = format!(
-                "?[{col_list}] := *{rel}{{{col_list}}}, phase == \"luna\""
+                "?[{col_list}] := *{rel}{{{col_list}}}, phase == \"becoming\""
             );
             let luna_rows = self.db.run_script(&query)?;
 
@@ -106,7 +106,7 @@ impl WorldVcs<'_> {
                         .enumerate()
                         .map(|(i, v)| {
                             if i == phase_idx {
-                                "\"sol\"".to_string()
+                                "\"manifest\"".to_string()
                             } else {
                                 datavalue_to_cozo_literal(v)
                             }
@@ -141,7 +141,7 @@ impl WorldVcs<'_> {
             let col_list = col_names.join(", ");
 
             let query = if has_phase_column(rel_name) {
-                format!("?[{col_list}] := *{rel_name}{{{col_list}}}, phase == \"sol\"")
+                format!("?[{col_list}] := *{rel_name}{{{col_list}}}, phase == \"manifest\"")
             } else {
                 format!("?[{col_list}] := *{rel_name}{{{col_list}}}")
             };

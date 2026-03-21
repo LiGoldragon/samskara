@@ -51,9 +51,9 @@ fn full_vcs_roundtrip() {
 
     let vcs = samskara::vcs::WorldVcs::new(&db);
 
-    // Verify seed loaded: 5 sol thoughts (t-project-2 is luna/staged)
-    let thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"sol\"");
-    assert_eq!(row_count(&thoughts), 5, "should have 5 sol-phase seeded thoughts");
+    // Verify seed loaded: 5 manifest thoughts (t-project-2 is becoming/staged)
+    let thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    assert_eq!(row_count(&thoughts), 5, "should have 5 manifest-phase seeded thoughts");
 
     // ── Genesis commit ──────────────────────────────────────────────
 
@@ -90,21 +90,21 @@ fn full_vcs_roundtrip() {
     ));
     assert!(row_count(&snaps) >= 10, "should have snapshots for all versioned relations");
 
-    // ── Mutate: add a luna-phase thought ────────────────────────────
+    // ── Mutate: add a becoming-phase thought ─────────────────────────
 
     db.run_script(
         r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
             "t-new-1", "observation", "global", "draft", "New thought",
             "This is a test thought added after genesis.",
-            "2026-03-18", "2026-03-18", "luna", "seen"
+            "2026-03-18", "2026-03-18", "becoming", "seen"
         ]]
         :put thought { id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }"#,
     )
     .expect("assert new thought");
 
-    // Verify luna thought exists
-    let luna_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"luna\"");
-    assert_eq!(row_count(&luna_thoughts), 1, "should have 1 luna thought");
+    // Verify becoming thought exists
+    let becoming_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"becoming\"");
+    assert_eq!(row_count(&becoming_thoughts), 1, "should have 1 becoming thought");
 
     // ── Second commit ───────────────────────────────────────────────
 
@@ -120,12 +120,12 @@ fn full_vcs_roundtrip() {
 
     let second_hash = second.world_hash.clone();
 
-    // Verify luna→sol promotion happened
-    let luna_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"luna\"");
-    assert_eq!(row_count(&luna_after), 0, "no luna thoughts after commit (promoted to sol)");
+    // Verify becoming→manifest promotion happened
+    let becoming_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"becoming\"");
+    assert_eq!(row_count(&becoming_after), 0, "no becoming thoughts after commit (promoted to manifest)");
 
-    let sol_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"sol\"");
-    assert_eq!(row_count(&sol_thoughts), 7, "should have 7 sol thoughts (6 from genesis + 1 new)");
+    let manifest_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    assert_eq!(row_count(&manifest_thoughts), 7, "should have 7 manifest thoughts (6 from genesis + 1 new)");
 
     // Verify deltas were recorded
     let deltas = query_str(&db, &format!(
@@ -142,7 +142,7 @@ fn full_vcs_roundtrip() {
     assert!(restore.relations_restored > 0);
 
     // Verify state matches genesis: 6 thoughts (the new one should be gone)
-    let restored_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"sol\"");
+    let restored_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
     assert_eq!(
         row_count(&restored_thoughts), 6,
         "restored state should have 6 thoughts (genesis state)"

@@ -2,7 +2,7 @@
 
 ?[name, description] <- [
   ["Enum",       "Registry of all categorical type relations"],
-  ["Phase",      "Lifecycle tri-state: sol/luna/saturnus"],
+  ["Phase",      "Lifecycle tri-state: manifest/becoming/retired"],
   ["Dignity",    "Epistemological trust hierarchy"],
   ["CommitType", "Jujutsu commit classification"],
   ["Action",     "Commit transformation verb"],
@@ -18,9 +18,9 @@
 #── Phase seed ─────────────────────────────────────────────────────────
 
 ?[name, glyph, in_world_hash, description] <- [
-  ["sol",      "☉", true,  "Manifest — committed truth"],
-  ["luna",     "☽", false, "Becoming — staged, proposed"],
-  ["saturnus", "♄", false, "Archived — superseded, retained"]
+  ["manifest", "☉", true,  "Current, active — what IS"],
+  ["becoming", "☽", false, "Staged, proposed — what is being considered"],
+  ["retired",  "♄", false, "Archived, superseded — what WAS"]
 ]
 :put Phase { name => glyph, in_world_hash, description }
 
@@ -35,7 +35,7 @@
 ]
 :put Dignity { name => rank, description }
 
-#── CommitType seed (☉ Sol — what kind of change) ─────────────────────
+#── CommitType seed (manifest — what kind of change) ──────────────────
 
 ?[name, description] <- [
   ["fix",       "Bug fix or correction"],
@@ -53,7 +53,7 @@
 ]
 :put CommitType { name => description }
 
-#── Action seed (☽ Luna — what transformation verb) ───────────────────
+#── Action seed (becoming — what transformation verb) ─────────────────
 
 ?[name, description] <- [
   ["add",      "Introduce something new"],
@@ -71,7 +71,7 @@
 ]
 :put Action { name => description }
 
-#── Verdict seed (♄ Saturnus — why the change was needed) ─────────────
+#── Verdict seed (retired — why the change was needed) ────────────────
 
 ?[name, description] <- [
   ["error",      "Something was wrong or broken"],
@@ -87,43 +87,43 @@
 #── Agent seed ──────────────────────────────────────────────────────
 
 ?[id, name, role, email, phase, dignity] <- [
-  ["claude-code-1", "Claude Code", "first-agent", "noreply@anthropic.com", "sol", "proven"]
+  ["claude-code-1", "Claude Code", "first-agent", "noreply@anthropic.com", "manifest", "proven"]
 ]
 :put agent { id => name, role, email, phase, dignity }
 
 #── Repo seed ───────────────────────────────────────────────────────
 
 ?[name, github, purpose, depends_on, phase, dignity] <- [
-  ["criome-cozo",              "LiGoldragon/criome-cozo",              "CozoDB wrapper crate (leaf dependency)",                  "",                                       "sol", "proven"],
-  ["samskara-lojix-contract",  "LiGoldragon/samskara-lojix-contract",  "Shared datalog relation schemas between agents",          "criome-cozo",                            "sol", "proven"],
-  ["samskara",                 "LiGoldragon/samskara",                 "Pure datalog agent — sees only relations",                "criome-cozo,samskara-lojix-contract",    "sol", "proven"],
-  ["lojix",                    "LiGoldragon/lojix",                    "DSL transpiler (TS phase 1, Rust phase 2)",               "criome-cozo,samskara-lojix-contract",    "sol", "proven"],
-  ["Mentci",                   "LiGoldragon/Mentci",                   "Workspace (flake + dev shell + docs + samskara-world)",   "",                                       "sol", "proven"]
+  ["criome-cozo",              "LiGoldragon/criome-cozo",              "CozoDB wrapper crate (leaf dependency)",                  "",                                       "manifest", "proven"],
+  ["samskara-lojix-contract",  "LiGoldragon/samskara-lojix-contract",  "Shared datalog relation schemas between agents",          "criome-cozo",                            "manifest", "proven"],
+  ["samskara",                 "LiGoldragon/samskara",                 "Pure datalog agent — sees only relations",                "criome-cozo,samskara-lojix-contract",    "manifest", "proven"],
+  ["lojix",                    "LiGoldragon/lojix",                    "DSL transpiler (TS phase 1, Rust phase 2)",               "criome-cozo,samskara-lojix-contract",    "manifest", "proven"],
+  ["Mentci",                   "LiGoldragon/Mentci",                   "Workspace (flake + dev shell + docs + samskara-world)",   "",                                       "manifest", "proven"]
 ]
 :put repo { name => github, purpose, depends_on, phase, dignity }
 
 #── Repo state seed ─────────────────────────────────────────────────
 
 ?[name, bookmark, build_status, last_checked_ts, notes, phase, dignity] <- [
-  ["criome-cozo",              "main",  "passing",  "2026-03-16",  "v0.7.13-alpha.3 cozo-ce, pins rayon 1.10.0",  "sol", "seen"],
-  ["samskara-lojix-contract",  "main",  "passing",  "2026-03-16",  "3 contract relations, clean",                 "sol", "seen"],
-  ["samskara",                 "v1",    "passing",  "2026-03-16",  "CLI + jj-mirror, main loop stubbed",          "sol", "seen"],
-  ["lojix",                    "v1",    "passing",  "2026-03-16",  "CLI + transpile skeleton, all logic stubbed",  "sol", "seen"],
-  ["Mentci",                   "main",  "n/a",      "2026-03-16",  "Workspace only — no build artifacts",         "sol", "seen"]
+  ["criome-cozo",              "main",  "passing",  "2026-03-16",  "v0.7.13-alpha.3 cozo-ce, pins rayon 1.10.0",  "manifest", "seen"],
+  ["samskara-lojix-contract",  "main",  "passing",  "2026-03-16",  "3 contract relations, clean",                 "manifest", "seen"],
+  ["samskara",                 "v1",    "passing",  "2026-03-16",  "CLI + jj-mirror, main loop stubbed",          "manifest", "seen"],
+  ["lojix",                    "v1",    "passing",  "2026-03-16",  "CLI + transpile skeleton, all logic stubbed",  "manifest", "seen"],
+  ["Mentci",                   "main",  "n/a",      "2026-03-16",  "Workspace only — no build artifacts",         "manifest", "seen"]
 ]
 :put repo_state { name => bookmark, build_status, last_checked_ts, notes, phase, dignity }
 
 #── Principle seed (doctrine) ──────────────────────────────────────
 
 ?[id, domain, rule, reason, phase, dignity] <- [
-  ["p1", "data-ownership",   "Samskara NEVER sees files, code, or the OS — only relations",              "Pure datalog agent invariant",                      "sol", "eternal"],
-  ["p2", "data-ownership",   "Each agent owns its own CozoDB — no shared database access",               "Sema data ownership principle",                     "sol", "eternal"],
-  ["p3", "communication",    "Communication is ONLY through contract relations",                         "No RPC, no message bus, no shared state",           "sol", "eternal"],
-  ["p4", "vcs",              "Jujutsu for VCS — git is storage backend only",                            "jj is the only allowed interface",                  "sol", "eternal"],
-  ["p5", "build",            "Nix for builds, Rust for code — no exceptions",                            "Language policy",                                   "sol", "eternal"],
-  ["p6", "architecture",     "Micro-repo style: each concern is its own repo, contracts too",            "Separation of concerns at repo boundary",           "sol", "eternal"],
-  ["p7", "serialization",    "Binary format is Cap'n Proto — headerless data indexed by reader version", "Zero-copy, deterministic, self-describing envelope", "sol", "eternal"],
-  ["p8", "version-control",  "samskara-vcs version-controls database changes, not files",                "Relations are the unit of change, not files",       "sol", "eternal"]
+  ["p1", "data-ownership",   "Samskara NEVER sees files, code, or the OS — only relations",              "Pure datalog agent invariant",                      "manifest", "eternal"],
+  ["p2", "data-ownership",   "Each agent owns its own CozoDB — no shared database access",               "Sema data ownership principle",                     "manifest", "eternal"],
+  ["p3", "communication",    "Communication is ONLY through contract relations",                         "No RPC, no message bus, no shared state",           "manifest", "eternal"],
+  ["p4", "vcs",              "Jujutsu for VCS — git is storage backend only",                            "jj is the only allowed interface",                  "manifest", "eternal"],
+  ["p5", "build",            "Nix for builds, Rust for code — no exceptions",                            "Language policy",                                   "manifest", "eternal"],
+  ["p6", "architecture",     "Micro-repo style: each concern is its own repo, contracts too",            "Separation of concerns at repo boundary",           "manifest", "eternal"],
+  ["p7", "serialization",    "Binary format is Cap'n Proto — headerless data indexed by reader version", "Zero-copy, deterministic, self-describing envelope", "manifest", "eternal"],
+  ["p8", "version-control",  "samskara-vcs version-controls database changes, not files",                "Relations are the unit of change, not files",       "manifest", "eternal"]
 ]
 :put principle { id => domain, rule, reason, phase, dignity }
 
@@ -132,22 +132,22 @@
 ?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [
   ["t-user-1", "user", "global", "approved", "Project owner: Li",
    "mail@ligoldragon.com. Mentci creator. Prefers jj-centric workflow, Rust-only policy, datalog-native design.",
-   "2026-03-16", "2026-03-16", "sol", "proven"],
+   "2026-03-16", "2026-03-16", "manifest", "proven"],
   ["t-project-1", "project", "global", "approved", "Mentci v1 is successor to Mentci-AI (now Mentci-v0)",
    "Original at criome/Mentci renamed to criome/Mentci-v0. New project at LiGoldragon/Mentci. Two-agent architecture: Samskara (pure datalog) + Lojix (DSL transpiler).",
-   "2026-03-16", "2026-03-16", "sol", "proven"],
+   "2026-03-16", "2026-03-16", "manifest", "proven"],
   ["t-project-2", "project", "lojix", "draft", "DSL design needed",
    "Lojix has no transpile logic yet — all stubs. No DSL source relations exist. The lojix_source relation is defined but nothing populates it. DSL grammar is the next design task.",
-   "2026-03-16", "2026-03-16", "luna", "seen"],
+   "2026-03-16", "2026-03-16", "becoming", "seen"],
   ["t-observation-1", "observation", "global", "approved", "jj submodules do not exist yet",
    "jj 0.36.0 has no submodule support. Tracked in jj-vcs/jj issue 494. Design doc exists but no implementation. Current workaround: Nix flake inputs for hermetic builds, sibling path deps for local dev.",
-   "2026-03-16", "2026-03-16", "sol", "proven"],
+   "2026-03-16", "2026-03-16", "manifest", "proven"],
   ["t-reference-1", "reference", "global", "approved", "FAVA Trails — inspiration for agent memory",
    "github.com/MachineWisdomAI/fava-trails. MCP server for versioned agent memory using jj-tracked markdown. Key patterns: supersession, trust gate, typed relationships, draft isolation. Our datalog approach is strictly more powerful than their file-based emulation.",
-   "2026-03-16", "2026-03-16", "sol", "seen"],
+   "2026-03-16", "2026-03-16", "manifest", "seen"],
   ["t-feedback-1", "feedback", "global", "approved", "git is storage, jj is the only interface",
    "Never use git commands directly. jj is mandatory for all VCS operations across all repos. Why: user's explicit requirement for jj-centric workflow. How to apply: all VCS operations use jj, all documentation references jj.",
-   "2026-03-16", "2026-03-16", "sol", "eternal"]
+   "2026-03-16", "2026-03-16", "manifest", "eternal"]
 ]
 :put thought { id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }
 
@@ -190,18 +190,18 @@
 #── Sign seed ──────────────────────────────────────────────────────────
 
 ?[name, glyph, element, modality, house, ruler, phase, dignity] <- [
-  ["aries",       "♈", "fire",  "cardinal", 1,  "mars",    "sol", "proven"],
-  ["taurus",      "♉", "earth", "fixed",    2,  "venus",   "sol", "proven"],
-  ["gemini",      "♊", "air",   "mutable",  3,  "mercury", "sol", "proven"],
-  ["cancer",      "♋", "water", "cardinal", 4,  "moon",    "sol", "proven"],
-  ["leo",         "♌", "fire",  "fixed",    5,  "sun",     "sol", "proven"],
-  ["virgo",       "♍", "earth", "mutable",  6,  "mercury", "sol", "proven"],
-  ["libra",       "♎", "air",   "cardinal", 7,  "venus",   "sol", "proven"],
-  ["scorpio",     "♏", "water", "fixed",    8,  "mars",    "sol", "proven"],
-  ["sagittarius", "♐", "fire",  "mutable",  9,  "jupiter", "sol", "proven"],
-  ["capricorn",   "♑", "earth", "cardinal", 10, "saturn",  "sol", "proven"],
-  ["aquarius",    "♒", "air",   "fixed",    11, "saturn",  "sol", "proven"],
-  ["pisces",      "♓", "water", "mutable",  12, "jupiter", "sol", "proven"]
+  ["aries",       "♈", "fire",  "cardinal", 1,  "mars",    "manifest", "proven"],
+  ["taurus",      "♉", "earth", "fixed",    2,  "venus",   "manifest", "proven"],
+  ["gemini",      "♊", "air",   "mutable",  3,  "mercury", "manifest", "proven"],
+  ["cancer",      "♋", "water", "cardinal", 4,  "moon",    "manifest", "proven"],
+  ["leo",         "♌", "fire",  "fixed",    5,  "sun",     "manifest", "proven"],
+  ["virgo",       "♍", "earth", "mutable",  6,  "mercury", "manifest", "proven"],
+  ["libra",       "♎", "air",   "cardinal", 7,  "venus",   "manifest", "proven"],
+  ["scorpio",     "♏", "water", "fixed",    8,  "mars",    "manifest", "proven"],
+  ["sagittarius", "♐", "fire",  "mutable",  9,  "jupiter", "manifest", "proven"],
+  ["capricorn",   "♑", "earth", "cardinal", 10, "saturn",  "manifest", "proven"],
+  ["aquarius",    "♒", "air",   "fixed",    11, "saturn",  "manifest", "proven"],
+  ["pisces",      "♓", "water", "mutable",  12, "jupiter", "manifest", "proven"]
 ]
 :put Sign { name => glyph, element, modality, house, ruler, phase, dignity }
 
@@ -209,13 +209,13 @@
 # stage/freedom from Young's The Reflexive Universe (7 stages)
 
 ?[name, glyph, rules, exaltation, detriment, fall, stage, freedom, phase, dignity] <- [
-  ["sun",     "☉", "leo",              "aries",    "aquarius",   "libra",     1, 3, "sol", "eternal"],
-  ["moon",    "☽", "cancer",           "taurus",   "capricorn",  "scorpio",   2, 2, "sol", "eternal"],
-  ["mars",    "♂", "aries,scorpio",    "capricorn","libra,taurus","cancer",   3, 1, "sol", "eternal"],
-  ["mercury", "☿", "gemini,virgo",     "virgo",    "sagittarius,pisces","pisces", 5, 1, "sol", "eternal"],
-  ["jupiter", "♃", "sagittarius,pisces","cancer",  "gemini,virgo","capricorn",6, 2, "sol", "eternal"],
-  ["venus",   "♀", "taurus,libra",     "pisces",   "aries,scorpio","virgo",  6, 2, "sol", "eternal"],
-  ["saturn",  "♄", "capricorn,aquarius","libra",   "cancer,leo",  "aries",   4, 0, "sol", "eternal"]
+  ["sun",     "☉", "leo",              "aries",    "aquarius",   "libra",     1, 3, "manifest", "eternal"],
+  ["moon",    "☽", "cancer",           "taurus",   "capricorn",  "scorpio",   2, 2, "manifest", "eternal"],
+  ["mars",    "♂", "aries,scorpio",    "capricorn","libra,taurus","cancer",   3, 1, "manifest", "eternal"],
+  ["mercury", "☿", "gemini,virgo",     "virgo",    "sagittarius,pisces","pisces", 5, 1, "manifest", "eternal"],
+  ["jupiter", "♃", "sagittarius,pisces","cancer",  "gemini,virgo","capricorn",6, 2, "manifest", "eternal"],
+  ["venus",   "♀", "taurus,libra",     "pisces",   "aries,scorpio","virgo",  6, 2, "manifest", "eternal"],
+  ["saturn",  "♄", "capricorn,aquarius","libra",   "cancer,leo",  "aries",   4, 0, "manifest", "eternal"]
 ]
 :put Planet { name => glyph, rules, exaltation, detriment, fall, stage, freedom, phase, dignity }
 
@@ -235,17 +235,42 @@
 # Source: Science & Astrology pp. 25, 34; The Geometry of Meaning ch. 3-4
 
 ?[sign, formula, element, modality, dimension, physical, psychological, phase, dignity] <- [
-  ["aries",       "L/T²",    "fire",  "cardinal", "acceleration",  "Acceleration",       "Blind action",       "sol", "proven"],
-  ["taurus",      "ML/T³",   "earth", "fixed",    "mass_control",  "Mass control",       "Establishment",      "sol", "proven"],
-  ["gemini",      "ML²/T³",  "air",   "mutable",  "power",         "Power",              "Knowledge",          "sol", "proven"],
-  ["cancer",      "L/T",     "water", "cardinal", "velocity",      "Velocity",           "Change",             "sol", "proven"],
-  ["leo",         "ML/T²",   "fire",  "fixed",    "force",         "Force",              "Being, identity",    "sol", "proven"],
-  ["virgo",       "ML²/T²",  "earth", "mutable",  "energy",        "Energy",             "Work, fact",         "sol", "proven"],
-  ["libra",       "L",       "air",   "cardinal", "position",      "Position",           "Observation",        "sol", "proven"],
-  ["scorpio",     "ML/T",    "water", "fixed",    "momentum",      "Momentum",           "Transformation",     "sol", "proven"],
-  ["sagittarius", "ML²/T",   "fire",  "mutable",  "action",        "Action",             "Hunch, intuition",   "sol", "proven"],
-  ["capricorn",   "L/T³",    "earth", "cardinal", "control",       "Control",            "Control, mastery",   "sol", "proven"],
-  ["aquarius",    "ML",      "air",   "fixed",    "moment",        "Moment (of inertia)","Significance",       "sol", "proven"],
-  ["pisces",      "ML²",     "water", "mutable",  "inertia",       "Moment of inertia",  "Belief, surrender",  "sol", "proven"]
+  ["aries",       "L/T²",    "fire",  "cardinal", "acceleration",  "Acceleration",       "Blind action",       "manifest", "proven"],
+  ["taurus",      "ML/T³",   "earth", "fixed",    "mass_control",  "Mass control",       "Establishment",      "manifest", "proven"],
+  ["gemini",      "ML²/T³",  "air",   "mutable",  "power",         "Power",              "Knowledge",          "manifest", "proven"],
+  ["cancer",      "L/T",     "water", "cardinal", "velocity",      "Velocity",           "Change",             "manifest", "proven"],
+  ["leo",         "ML/T²",   "fire",  "fixed",    "force",         "Force",              "Being, identity",    "manifest", "proven"],
+  ["virgo",       "ML²/T²",  "earth", "mutable",  "energy",        "Energy",             "Work, fact",         "manifest", "proven"],
+  ["libra",       "L",       "air",   "cardinal", "position",      "Position",           "Observation",        "manifest", "proven"],
+  ["scorpio",     "ML/T",    "water", "fixed",    "momentum",      "Momentum",           "Transformation",     "manifest", "proven"],
+  ["sagittarius", "ML²/T",   "fire",  "mutable",  "action",        "Action",             "Hunch, intuition",   "manifest", "proven"],
+  ["capricorn",   "L/T³",    "earth", "cardinal", "control",       "Control",            "Control, mastery",   "manifest", "proven"],
+  ["aquarius",    "ML",      "air",   "fixed",    "moment",        "Moment (of inertia)","Significance",       "manifest", "proven"],
+  ["pisces",      "ML²",     "water", "mutable",  "inertia",       "Moment of inertia",  "Belief, surrender",  "manifest", "proven"]
 ]
 :put Measure { sign => formula, element, modality, dimension, physical, psychological, phase, dignity }
+
+#── Saṃskṛta equivalence seed ─────────────────────────────────────────
+# Maps English primary terms to their Sanskrit roots.
+
+?[term, samskrta, domain, meaning] <- [
+  ["eternal",   "nitya",    "dignity", "Immutable, always-true"],
+  ["proven",    "siddha",   "dignity", "Accomplished, verified"],
+  ["seen",      "dṛṣṭa",   "dignity", "Witnessed, observed"],
+  ["uncertain", "sandeha",  "dignity", "Doubt, unverified"],
+  ["delusion",  "bhrama",   "dignity", "Error, mistaking rope for snake"],
+  ["commit",    "saṅkalpa", "vcs",     "Determination, resolve"],
+  ["restore",   "pratiṣṭhā","vcs",     "Establishment, restoration"],
+  ["impression","saṃskāra", "core",    "Mental impression, latent tendency"]
+]
+:put samskrta { term => samskrta, domain, meaning }
+
+#── Latina equivalence seed ────────────────────────────────────────────
+# Maps English primary terms to their Latin roots (planetary tradition).
+
+?[term, latina, domain, meaning] <- [
+  ["manifest", "sol",      "phase", "The Sun — what is illuminated, current"],
+  ["becoming", "luna",     "phase", "The Moon — what is reflected, in flux"],
+  ["retired",  "saturnus", "phase", "Saturn — what is bounded, completed"]
+]
+:put latina { term => latina, domain, meaning }

@@ -225,7 +225,7 @@ impl<'a> JjMirror<'a> {
 
         let script = format!(
             r#"?[change_id, commit_id, parent_change_id, author, ts, commit_type, title, body, phase, dignity] <- [[
-                "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "sol", "seen"
+                "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "manifest", "seen"
             ]]
             :put commit {{ change_id => commit_id, parent_change_id, author, ts, commit_type, title, body, phase, dignity }}"#,
             esc(&commit.change_id), esc(&commit.commit_id), esc(&commit.parent_change_id),
