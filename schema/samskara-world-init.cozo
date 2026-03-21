@@ -349,3 +349,19 @@
   segment_table: String,
   capnp_schema: String
 }
+
+#── Content-addressed blob index ───────────────────────────────────
+#Index for criome-store. Blobs live on disk at ~/.criome/store,
+#addressed by blake3 hash. This relation is the only way to discover
+#what is in the store.
+
+:create blob {
+  hash: String =>
+  size: Int,
+  compressed_size: Int,
+  media_type: String,
+  origin: String,
+  origin_ref: String,
+  phase: String,
+  dignity: String
+}

@@ -8,6 +8,7 @@ use rmcp::{
 };
 
 use criome_cozo::CriomeDb;
+use criome_store::Store;
 
 // ── Parameter types ────────────────────────────────────────────────
 
@@ -91,22 +92,42 @@ pub struct RestoreWorldParams {
     pub commit_id: String,
 }
 
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct StorePutParams {
+    /// Base64-encoded bytes to store
+    pub data_b64: String,
+    /// MIME type of the content
+    pub media_type: String,
+    /// Origin system (e.g. "annas-archive", "local")
+    pub origin: String,
+    /// Reference in origin system (e.g. anna's archive MD5)
+    #[serde(default)]
+    pub origin_ref: Option<String>,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct StoreGetParams {
+    /// Blake3 content hash (hex)
+    pub hash: String,
+}
+
 // ── Server struct ──────────────────────────────────────────────────
 
 #[derive(Clone)]
 pub struct SamskaraMcp {
     db: Arc<CriomeDb>,
+    store: Arc<Store>,
     tool_router: ToolRouter<Self>,
 }
 
 impl SamskaraMcp {
-    pub fn new(db: Arc<CriomeDb>) -> Self {
+    pub fn new(db: Arc<CriomeDb>, store: Arc<Store>) -> Self {
         Self {
             db,
+            store,
             tool_router: Self::tool_router(),
         }
     }
-
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -357,6 +378,76 @@ impl SamskaraMcp {
             Ok(Ok(msg)) => msg,
             Ok(Err(e)) => format!("error: {e}"),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+        }
+    }
+
+    #[tool(description = "Store a blob in the content-addressed store. Returns blake3 hash. Also writes a blob row to the DB.")]
+    async fn store_put(
+        &self,
+        Parameters(params): Parameters<StorePutParams>,
+    ) -> String {
+        let store = self.store.clone();
+        let db = self.db.clone();
+        let result = tokio::task::spawn_blocking(move || {
+            use base64::Engine;
+            let data = base64::engine::general_purpose::STANDARD
+                .decode(&params.data_b64)
+                .map_err(|e| format!("base64 decode failed: {e}"))?;
+
+            let hash = store.put(&data).map_err(|e| e.to_string())?;
+            let meta = store.meta(&hash).map_err(|e| e.to_string())?
+                .ok_or("blob stored but meta missing")?;
+
+            let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+            let origin_ref = params.origin_ref.as_deref().unwrap_or("");
+            let script = format!(
+                r#"?[hash, size, compressed_size, media_type, origin, origin_ref, phase, dignity] <- [[
+                    "{}", {}, {}, "{}", "{}", "{}", "manifest", "seen"
+                ]]
+                :put blob {{ hash => size, compressed_size, media_type, origin, origin_ref, phase, dignity }}"#,
+                hash.to_hex(),
+                meta.size,
+                meta.compressed_size,
+                esc(&params.media_type),
+                esc(&params.origin),
+                esc(origin_ref),
+            );
+            db.run_script_raw(&script).map_err(|e| e.to_string())?;
+
+            Ok::<String, String>(format!(
+                "[hash,size,compressed_size]\n[\"{}\",{},{}]",
+                hash.to_hex(), meta.size, meta.compressed_size,
+            ))
+        })
+        .await;
+
+        match result {
+            Ok(Ok(msg)) => msg,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
+        }
+    }
+
+    #[tool(description = "Retrieve a blob from the content-addressed store by blake3 hash. Returns base64-encoded bytes.")]
+    async fn store_get(
+        &self,
+        Parameters(params): Parameters<StoreGetParams>,
+    ) -> String {
+        let store = self.store.clone();
+        let result = tokio::task::spawn_blocking(move || {
+            let hash = criome_store::ContentHash::from_hex(&params.hash)
+                .ok_or_else(|| format!("invalid hash: {}", params.hash))?;
+            let data = store.get(&hash).map_err(|e| e.to_string())?;
+
+            use base64::Engine;
+            Ok::<String, String>(base64::engine::general_purpose::STANDARD.encode(&data))
+        })
+        .await;
+
+        match result {
+            Ok(Ok(b64)) => b64,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
         }
     }
 }

@@ -212,9 +212,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let relations = db.run_script("::relations")?;
     tracing::info!("active relations: {relations}");
 
+    // Open content-addressed store at ~/.criome/store
+    let store_path = dirs::home_dir()
+        .expect("no home directory")
+        .join(".criome")
+        .join("store");
+    let store = criome_store::Store::open(&store_path)
+        .expect("failed to open criome store");
+    tracing::info!("content store at {}", store_path.display());
+
     // Start MCP server on stdio
     let db = Arc::new(db);
-    let server = samskara::mcp::SamskaraMcp::new(db);
+    let store = Arc::new(store);
+    let server = samskara::mcp::SamskaraMcp::new(db, store);
 
     tracing::info!("samskara MCP server starting on stdio");
     let service = rmcp::ServiceExt::serve(server, rmcp::transport::stdio()).await?;
