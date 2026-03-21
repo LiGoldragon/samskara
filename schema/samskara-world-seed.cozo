@@ -11,6 +11,7 @@
   ["Modality",   "Three modalities — mutable/cardinal/fixed"],
   ["Sign",       "Twelve zodiacal signs"],
   ["Planet",     "Seven classical planets + nodes"],
+  ["Rulership",  "Planet-Sign dignity assignments — domicile/exaltation/detriment/fall"],
   ["Aspect",     "Geometric relationships between signs"]
 ]
 :put Enum { name => description }
@@ -190,16 +191,61 @@
 #── Planet seed ────────────────────────────────────────────────────────
 # stage/freedom from Young's The Reflexive Universe (7 stages)
 
-?[name, glyph, rules, exaltation, detriment, fall, stage, freedom, phase, dignity] <- [
-  ["sun",     "☉", "leo",              "aries",    "aquarius",   "libra",     1, 3, "manifest", "eternal"],
-  ["moon",    "☽", "cancer",           "taurus",   "capricorn",  "scorpio",   2, 2, "manifest", "eternal"],
-  ["mars",    "♂", "aries,scorpio",    "capricorn","libra,taurus","cancer",   3, 1, "manifest", "eternal"],
-  ["mercury", "☿", "gemini,virgo",     "virgo",    "sagittarius,pisces","pisces", 5, 1, "manifest", "eternal"],
-  ["jupiter", "♃", "sagittarius,pisces","cancer",  "gemini,virgo","capricorn",6, 2, "manifest", "eternal"],
-  ["venus",   "♀", "taurus,libra",     "pisces",   "aries,scorpio","virgo",  6, 2, "manifest", "eternal"],
-  ["saturn",  "♄", "capricorn,aquarius","libra",   "cancer,leo",  "aries",   4, 0, "manifest", "eternal"]
+?[name, glyph, stage, freedom, phase, dignity] <- [
+  ["sun",     "☉", 1, 3, "manifest", "eternal"],
+  ["moon",    "☽", 2, 2, "manifest", "eternal"],
+  ["mars",    "♂", 3, 1, "manifest", "eternal"],
+  ["saturn",  "♄", 4, 0, "manifest", "eternal"],
+  ["mercury", "☿", 5, 1, "manifest", "eternal"],
+  ["venus",   "♀", 6, 2, "manifest", "eternal"],
+  ["jupiter", "♃", 6, 2, "manifest", "eternal"]
 ]
-:put Planet { name => glyph, rules, exaltation, detriment, fall, stage, freedom, phase, dignity }
+:put Planet { name => glyph, stage, freedom, phase, dignity }
+
+#── Rulership seed ─────────────────────────────────────────────────────
+# Ptolemy Tetrabiblos I.17-22 — domicile, exaltation, detriment, fall
+
+?[planet, sign, dignity_type, phase, dignity] <- [
+  ["sun", "leo", "domicile", "manifest", "eternal"],
+  ["moon", "cancer", "domicile", "manifest", "eternal"],
+  ["mercury", "gemini", "domicile", "manifest", "eternal"],
+  ["mercury", "virgo", "domicile", "manifest", "eternal"],
+  ["venus", "taurus", "domicile", "manifest", "eternal"],
+  ["venus", "libra", "domicile", "manifest", "eternal"],
+  ["mars", "aries", "domicile", "manifest", "eternal"],
+  ["mars", "scorpio", "domicile", "manifest", "eternal"],
+  ["jupiter", "sagittarius", "domicile", "manifest", "eternal"],
+  ["jupiter", "pisces", "domicile", "manifest", "eternal"],
+  ["saturn", "capricorn", "domicile", "manifest", "eternal"],
+  ["saturn", "aquarius", "domicile", "manifest", "eternal"],
+  ["sun", "aries", "exaltation", "manifest", "eternal"],
+  ["moon", "taurus", "exaltation", "manifest", "eternal"],
+  ["mercury", "virgo", "exaltation", "manifest", "eternal"],
+  ["venus", "pisces", "exaltation", "manifest", "eternal"],
+  ["mars", "capricorn", "exaltation", "manifest", "eternal"],
+  ["jupiter", "cancer", "exaltation", "manifest", "eternal"],
+  ["saturn", "libra", "exaltation", "manifest", "eternal"],
+  ["sun", "aquarius", "detriment", "manifest", "eternal"],
+  ["moon", "capricorn", "detriment", "manifest", "eternal"],
+  ["mercury", "sagittarius", "detriment", "manifest", "eternal"],
+  ["mercury", "pisces", "detriment", "manifest", "eternal"],
+  ["venus", "aries", "detriment", "manifest", "eternal"],
+  ["venus", "scorpio", "detriment", "manifest", "eternal"],
+  ["mars", "libra", "detriment", "manifest", "eternal"],
+  ["mars", "taurus", "detriment", "manifest", "eternal"],
+  ["jupiter", "gemini", "detriment", "manifest", "eternal"],
+  ["jupiter", "virgo", "detriment", "manifest", "eternal"],
+  ["saturn", "cancer", "detriment", "manifest", "eternal"],
+  ["saturn", "leo", "detriment", "manifest", "eternal"],
+  ["sun", "libra", "fall", "manifest", "eternal"],
+  ["moon", "scorpio", "fall", "manifest", "eternal"],
+  ["mercury", "pisces", "fall", "manifest", "eternal"],
+  ["venus", "virgo", "fall", "manifest", "eternal"],
+  ["mars", "cancer", "fall", "manifest", "eternal"],
+  ["jupiter", "capricorn", "fall", "manifest", "eternal"],
+  ["saturn", "aries", "fall", "manifest", "eternal"]
+]
+:put Rulership { planet, sign, dignity_type => phase, dignity }
 
 #── Aspect seed ────────────────────────────────────────────────────────
 

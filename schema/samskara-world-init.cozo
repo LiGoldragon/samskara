@@ -168,12 +168,16 @@
 :create Planet {
   name: String =>
   glyph: String,
-  rules: String,
-  exaltation: String,
-  detriment: String,
-  fall: String,
   stage: Int,
   freedom: Int,
+  phase: String,
+  dignity: String
+}
+
+:create Rulership {
+  planet: String,
+  sign: String,
+  dignity_type: String =>
   phase: String,
   dignity: String
 }
