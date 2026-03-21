@@ -15,6 +15,13 @@ use criome_cozo::CriomeDb;
 pub struct QueryParams {
     /// CozoScript to execute against the world database
     pub script: String,
+    /// Pretty-print with column alignment (default: true). Set false for raw cozo tuples.
+    #[serde(default = "default_pretty")]
+    pub pretty: bool,
+}
+
+fn default_pretty() -> bool {
+    true
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
@@ -107,12 +114,6 @@ impl SamskaraMcp {
         }
     }
 
-    fn run_script_blocking(
-        db: &Arc<CriomeDb>,
-        script: &str,
-    ) -> Result<serde_json::Value, String> {
-        db.run_script(script).map_err(|e| e.to_string())
-    }
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -133,21 +134,21 @@ impl ServerHandler for SamskaraMcp {
 
 #[tool_router]
 impl SamskaraMcp {
-    #[tool(description = "Execute arbitrary CozoScript against the world database. Returns JSON results.")]
+    #[tool(description = "Execute CozoScript against the world database. Returns CozoScript tuples. Set pretty=false for raw compact output.")]
     async fn query(&self, Parameters(params): Parameters<QueryParams>) -> String {
         let db = self.db.clone();
         let script = params.script;
+        let pretty = params.pretty;
         let result = tokio::task::spawn_blocking(move || {
-            Self::run_script_blocking(&db, &script)
+            db.run_script_cozo(&script, pretty)
+                .map_err(|e| e.to_string())
         })
         .await;
 
         match result {
-            Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
-                format!("{{\"error\": \"serialization failed: {e}\"}}")
-            }),
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
-            Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+            Ok(Ok(text)) => text,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
         }
     }
 
@@ -178,7 +179,7 @@ impl SamskaraMcp {
                 esc(&params.phase),
                 esc(&params.dignity),
             );
-            Self::run_script_blocking(&db, &thought_script)?;
+            db.run_script_raw(&thought_script).map_err(|e| e.to_string())?;
 
             // Insert tags
             for tag in &params.tags {
@@ -188,7 +189,7 @@ impl SamskaraMcp {
                     esc(&params.id),
                     esc(tag),
                 );
-                Self::run_script_blocking(&db, &tag_script)?;
+                db.run_script_raw(&tag_script).map_err(|e| e.to_string())?;
             }
 
             Ok::<String, String>(format!(
@@ -200,7 +201,7 @@ impl SamskaraMcp {
 
         match result {
             Ok(Ok(msg)) => msg,
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
+            Ok(Err(e)) => format!("error: {e}"),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
@@ -209,16 +210,15 @@ impl SamskaraMcp {
     async fn list_relations(&self) -> String {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
-            Self::run_script_blocking(&db, "::relations")
+            db.run_script_cozo("::relations", true)
+                .map_err(|e| e.to_string())
         })
         .await;
 
         match result {
-            Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
-                format!("{{\"error\": \"serialization failed: {e}\"}}")
-            }),
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
-            Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+            Ok(Ok(text)) => text,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
         }
     }
 
@@ -231,16 +231,15 @@ impl SamskaraMcp {
         let name = params.name;
         let result = tokio::task::spawn_blocking(move || {
             let script = format!("::columns {name}");
-            Self::run_script_blocking(&db, &script)
+            db.run_script_cozo(&script, true)
+                .map_err(|e| e.to_string())
         })
         .await;
 
         match result {
-            Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
-                format!("{{\"error\": \"serialization failed: {e}\"}}")
-            }),
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
-            Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+            Ok(Ok(text)) => text,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
         }
     }
 
@@ -280,16 +279,15 @@ impl SamskaraMcp {
                 )
             };
 
-            Self::run_script_blocking(&db, &base)
+            db.run_script_cozo(&base, true)
+                .map_err(|e| e.to_string())
         })
         .await;
 
         match result {
-            Ok(Ok(json)) => serde_json::to_string_pretty(&json).unwrap_or_else(|e| {
-                format!("{{\"error\": \"serialization failed: {e}\"}}")
-            }),
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
-            Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
+            Ok(Ok(text)) => text,
+            Ok(Err(e)) => format!("error: {e}"),
+            Err(e) => format!("error: task join failed: {e}"),
         }
     }
 
@@ -340,7 +338,7 @@ impl SamskaraMcp {
 
         match result {
             Ok(Ok(msg)) => msg,
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
+            Ok(Err(e)) => format!("error: {e}"),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
@@ -365,7 +363,7 @@ impl SamskaraMcp {
 
         match result {
             Ok(Ok(msg)) => msg,
-            Ok(Err(e)) => format!("{{\"error\": \"{}\"}}", e.replace('"', "\\\"")),
+            Ok(Err(e)) => format!("error: {e}"),
             Err(e) => format!("{{\"error\": \"task join failed: {e}\"}}"),
         }
     }
