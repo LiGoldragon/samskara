@@ -241,6 +241,53 @@
   dignity: String
 }
 
+#── Documentation layer ────────────────────────────────────────────
+#Structured categorical documentation for every relation. Three layers:
+#Layer 1 (relation_meta): what it IS — domain, arity, cardinality
+#Layer 2 (relation_morphism, relation_transformation): how it CONNECTS
+#Layer 3 (relation_tradition): which traditions define it
+
+:create relation_meta {
+  relation_name: String =>
+  domain: String,
+  arity_type: String,
+  cardinality: String,
+  description: String,
+  why: String,
+  phase: String,
+  dignity: String
+}
+
+:create relation_morphism {
+  source: String,
+  target: String,
+  via: String =>
+  functor_type: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create relation_transformation {
+  id: String =>
+  domain_relation: String,
+  codomain_relation: String,
+  functor_a: String,
+  functor_b: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create relation_tradition {
+  relation_name: String,
+  tradition: String =>
+  source_text: String,
+  authority: String,
+  phase: String,
+  dignity: String
+}
+
 #── Version control layer ───────────────────────────────────────────
 #These relations are meta-level: they track the state of all other
 #relations. They do not carry phase/dignity — they are infrastructure.

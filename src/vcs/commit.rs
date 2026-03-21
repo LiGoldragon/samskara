@@ -360,16 +360,18 @@ impl WorldVcs<'_> {
              relation_name: \"{relation}\", data}}"
         ))?;
 
-        let encoded = result
+        match result
             .get("rows")
             .and_then(|v| v.as_array())
             .and_then(|a| a.first())
             .and_then(|row| row.as_array())
             .and_then(|r| r.first())
             .and_then(|v| v.get("Str").and_then(|s| s.as_str()).or(v.as_str()))
-            .ok_or_else(|| Error::Deserialization { detail: format!("no snapshot for {relation} at {commit_id}") })?;
-
-        Snapshot::to_rows(encoded)
+        {
+            Some(encoded) => Snapshot::to_rows(encoded),
+            // New relation with no prior snapshot — empty state
+            None => Ok(serde_json::json!({"headers": [], "rows": []})),
+        }
     }
 
     pub(crate) fn upsert_head(&self, hash: &str) -> Result<(), Error> {
