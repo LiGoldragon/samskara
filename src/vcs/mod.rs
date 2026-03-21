@@ -8,41 +8,15 @@ pub use error::Error;
 
 use criome_cozo::CriomeDb;
 
-/// Relations that participate in the world hash (versioned state).
-pub const VERSIONED_RELATIONS: &[&str] = &[
-    "Aspect",
-    "Dignity",
-    "Element",
-    "Enum",
-    "Measure",
-    "Modality",
-    "Phase",
-    "Planet",
-    "Sign",
-    "agent",
-    "agent_session",
-    "latina",
-    "principle",
-    "repo",
-    "repo_state",
-    "samskrta",
-    "thought",
-    "thought_link",
-    "thought_tag",
-    "trust_review",
+/// Infrastructure relations excluded from versioning.
+/// These track versioned state but are not themselves versioned.
+const INFRASTRUCTURE_RELATIONS: &[&str] = &[
+    "meta", "world_commit", "world_commit_ref", "world_delta",
+    "world_manifest", "world_schema", "world_snapshot", "world_snapshot_index",
 ];
 
 /// Number of commits between full snapshots.
 pub const SNAPSHOT_INTERVAL: u32 = 10;
-
-/// Relations that have a `phase` column (and should filter to manifest-phase only).
-pub fn has_phase_column(rel: &str) -> bool {
-    matches!(
-        rel,
-        "thought" | "agent" | "agent_session" | "repo" | "repo_state" | "principle"
-        | "Sign" | "Planet" | "Measure"
-    )
-}
 
 /// The world version control system. Owns a reference to the CozoDB instance
 /// and provides commit (saṅkalpa) and restore (pratiṣṭhā) operations.
@@ -53,6 +27,53 @@ pub struct WorldVcs<'a> {
 impl<'a> WorldVcs<'a> {
     pub fn new(db: &'a CriomeDb) -> Self {
         Self { db }
+    }
+
+    /// Fallback list for when world_schema is not populated (e.g. tests).
+    const FALLBACK_VERSIONED: &'static [&'static str] = &[
+        "Aspect", "Dignity", "Element", "Enum", "Measure", "Modality",
+        "Phase", "Planet", "Sign",
+        "agent", "agent_session", "latina", "principle", "repo", "repo_state",
+        "samskrta", "thought", "thought_link", "thought_tag", "trust_review",
+    ];
+
+    /// Query world_schema for all manifest-phase versioned relations.
+    /// Excludes infrastructure relations. Falls back to a hardcoded list
+    /// when world_schema is empty or absent (e.g. in tests).
+    pub fn versioned_relations(&self) -> Result<Vec<String>, Error> {
+        let result = self.db.run_script(
+            r#"?[name] := *world_schema{relation_name: name, phase: "manifest"} :order name"#
+        );
+
+        let names: Vec<String> = result.ok()
+            .and_then(|v| v.get("rows")?.as_array().cloned())
+            .map(|rows| {
+                rows.iter()
+                    .filter_map(|row| {
+                        let name = row.as_array()?.first()
+                            .and_then(|v| v.get("Str").and_then(|s| s.as_str()).or(v.as_str()))?;
+                        if INFRASTRUCTURE_RELATIONS.contains(&name) {
+                            None
+                        } else {
+                            Some(name.to_string())
+                        }
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        if names.is_empty() {
+            Ok(Self::FALLBACK_VERSIONED.iter().map(|s| s.to_string()).collect())
+        } else {
+            Ok(names)
+        }
+    }
+
+    /// Check if a relation has a `phase` column by introspecting `::columns`.
+    pub fn has_phase_column(&self, rel: &str) -> bool {
+        self.columns(rel)
+            .map(|(cols, _)| cols.iter().any(|c| c == "phase"))
+            .unwrap_or(false)
     }
 
     /// Escape a string for embedding in CozoScript.

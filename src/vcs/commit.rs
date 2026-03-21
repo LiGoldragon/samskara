@@ -1,5 +1,5 @@
-use crate::vcs::{SNAPSHOT_INTERVAL, VERSIONED_RELATIONS, Error, WorldVcs,
-                  datavalue_to_cozo_literal, has_phase_column};
+use crate::vcs::{SNAPSHOT_INTERVAL, Error, WorldVcs,
+                  datavalue_to_cozo_literal};
 use crate::vcs::delta::RowDelta;
 use crate::vcs::snapshot::{Snapshot, SortedRows};
 
@@ -21,12 +21,15 @@ pub struct CommitResult {
 }
 
 impl WorldVcs<'_> {
-    /// Perform a full world commit (saṅkalpa): promote becoming→manifest, hash state,
-    /// record commit + manifest, optionally snapshot, compute deltas.
+    /// Perform a full world commit (saṅkalpa): materialize pending schema,
+    /// promote becoming→manifest, hash state, record commit + manifest,
+    /// optionally snapshot, compute deltas.
     pub fn commit(&self, input: CommitInput) -> Result<CommitResult, Error> {
+        self.materialize_pending_schema()?;
         self.promote_becoming_to_manifest()?;
 
-        let (manifest_entries, relation_data, world_hash) = self.hash_world_state()?;
+        let versioned = self.versioned_relations()?;
+        let (manifest_entries, relation_data, world_hash) = self.hash_world_state(&versioned)?;
 
         let parent_id = self.find_parent_commit();
 
@@ -72,12 +75,48 @@ impl WorldVcs<'_> {
         })
     }
 
+    /// Execute :create for any becoming-phase world_schema entries (where dignity != delusion).
+    fn materialize_pending_schema(&self) -> Result<(), Error> {
+        let result = self.db.run_script(
+            r#"?[relation_name, create_script] := *world_schema{relation_name, create_script, phase: "becoming", dignity},
+               dignity != "delusion""#
+        ).map_err(|e| Error::Db { detail: format!("query pending schema: {e}") })?;
+
+        if let Some(rows) = result.get("rows").and_then(|v| v.as_array()) {
+            for row in rows {
+                if let Some(arr) = row.as_array() {
+                    let name = arr.first()
+                        .and_then(|v| v.get("Str").and_then(|s| s.as_str()).or(v.as_str()))
+                        .unwrap_or("");
+                    let script = arr.get(1)
+                        .and_then(|v| v.get("Str").and_then(|s| s.as_str()).or(v.as_str()))
+                        .unwrap_or("");
+                    if !script.is_empty() {
+                        tracing::info!("materializing schema: {name}");
+                        self.db.run_script(script).map_err(|e| Error::Db {
+                            detail: format!("materialize schema {name}: {e}\nScript: {script}")
+                        })?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Promote all becoming-phase rows to manifest across phase-aware relations.
     fn promote_becoming_to_manifest(&self) -> Result<(), Error> {
-        for &rel in VERSIONED_RELATIONS {
-            if !has_phase_column(rel) {
-                continue;
-            }
+        // Promote world_schema entries too (including delusions — they become manifest warnings)
+        let all_phase_relations = {
+            let versioned = self.versioned_relations()?;
+            let mut rels: Vec<String> = versioned.into_iter()
+                .filter(|r| self.has_phase_column(r))
+                .collect();
+            // Also promote world_schema itself
+            rels.push("world_schema".to_string());
+            rels
+        };
+
+        for rel in &all_phase_relations {
             let (col_names, key_count) = self.columns(rel)?;
             let col_list = col_names.join(", ");
 
@@ -127,7 +166,7 @@ impl WorldVcs<'_> {
     }
 
     /// Query and hash all versioned relations. Returns (manifest, relation_data, world_hash).
-    fn hash_world_state(&self) -> Result<(
+    fn hash_world_state(&self, versioned: &[String]) -> Result<(
         Vec<(String, usize, String)>,
         Vec<(String, serde_json::Value, usize)>,
         String,
@@ -136,11 +175,11 @@ impl WorldVcs<'_> {
         let mut data = Vec::new();
         let mut hasher = blake3::Hasher::new();
 
-        for &rel_name in VERSIONED_RELATIONS {
+        for rel_name in versioned {
             let (col_names, key_count) = self.columns(rel_name)?;
             let col_list = col_names.join(", ");
 
-            let query = if has_phase_column(rel_name) {
+            let query = if self.has_phase_column(rel_name) {
                 format!("?[{col_list}] := *{rel_name}{{{col_list}}}, phase == \"manifest\"")
             } else {
                 format!("?[{col_list}] := *{rel_name}{{{col_list}}}")

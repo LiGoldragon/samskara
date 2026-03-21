@@ -1,4 +1,4 @@
-use crate::vcs::{VERSIONED_RELATIONS, Error, WorldVcs, datavalue_to_cozo_literal};
+use crate::vcs::{Error, WorldVcs, datavalue_to_cozo_literal};
 use crate::vcs::snapshot::Snapshot;
 
 /// Result of a successful restore operation.
@@ -39,8 +39,9 @@ impl WorldVcs<'_> {
 
         // Restore each versioned relation from snapshot
         let mut restored_count = 0;
+        let versioned = self.versioned_relations()?;
 
-        for &rel_name in VERSIONED_RELATIONS {
+        for rel_name in &versioned {
             let snap_data = self.db.run_script(&format!(
                 "?[data] := *world_snapshot{{commit_id: \"{nearest_snapshot_id}\", \
                  relation_name: \"{rel_name}\", data}}"
