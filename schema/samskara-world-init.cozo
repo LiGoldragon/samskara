@@ -411,4 +411,19 @@
   dignity: String
 }
 
+#── Guideline layer ───────────────────────────────────────────────────
+#Typed knowledge: each guideline is signed by Element/Modality via the
+#Measure ontology. Compact + rationale fields replace free-text prose.
+
+:create guideline {
+  id: String =>
+  domain: String,
+  sign: String,
+  compact: String,
+  rationale: String,
+  scope: String,
+  phase: String,
+  dignity: String
+}
+
 #blob relation belongs to criome-stored, not samskara.
