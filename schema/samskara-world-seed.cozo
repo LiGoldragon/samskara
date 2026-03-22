@@ -317,3 +317,214 @@
   ["retired",  "saturnus", "phase", "Saturn — what is bounded, completed"]
 ]
 :put latina { term => latina, domain, meaning }
+
+#── System call taxonomy seeds ────────────────────────────────────────
+
+# Register enum types
+?[name, description, phase, dignity] <- [
+  ["Tool",           "CLI tool binary names",                          "manifest", "eternal"],
+  ["CommandStatus",  "Permission states for system commands",          "manifest", "eternal"],
+  ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"]
+]
+:put Enum { name => description, phase, dignity }
+
+# CommandStatus enum
+?[name, description, phase, dignity] <- [
+  ["allowed",     "Command is permitted for use",                              "manifest", "eternal"],
+  ["disallowed",  "Command is forbidden — use the alternative",                "manifest", "eternal"],
+  ["restricted",  "Command is allowed with constraints (check sys_command_flag)", "manifest", "eternal"],
+  ["internal",    "Command is used internally by infrastructure only",         "manifest", "eternal"]
+]
+:put CommandStatus { name => description, phase, dignity }
+
+# FlagConstraint enum
+?[name, description, phase, dignity] <- [
+  ["required",  "Flag must always be passed",     "manifest", "eternal"],
+  ["optional",  "Flag may be passed",             "manifest", "eternal"],
+  ["forbidden", "Flag must never be passed",      "manifest", "eternal"]
+]
+:put FlagConstraint { name => description, phase, dignity }
+
+# Tool enum
+?[name, description, phase, dignity] <- [
+  ["jj",               "Jujutsu — VCS interface (mandatory)",              "manifest", "eternal"],
+  ["git",              "Git — storage backend only, never use directly",   "manifest", "eternal"],
+  ["nix",              "Nix — build system and dev shells",                "manifest", "eternal"],
+  ["cargo",            "Cargo — Rust build tool",                          "manifest", "eternal"],
+  ["gh",               "GitHub CLI",                                       "manifest", "eternal"],
+  ["sqlite",           "SQLite CLI — diagnostic only",                     "manifest", "eternal"],
+  ["capnpc",           "Cap'n Proto compiler",                             "manifest", "eternal"],
+  ["gopass",           "gopass — secret management",                       "manifest", "eternal"],
+  ["rust-analyzer",    "Rust language server",                             "manifest", "eternal"],
+  ["samskara",         "Samskara MCP server — write access to world.db",  "manifest", "eternal"],
+  ["samskara-reader",  "Samskara reader MCP — read-only world.db access", "manifest", "eternal"],
+  ["criome-stored",    "Criome store MCP — blob storage",                 "manifest", "eternal"],
+  ["annas-archive",    "Anna's Archive MCP — book/paper search",          "manifest", "eternal"]
+]
+:put Tool { name => description, phase, dignity }
+
+#── sys_command seed ──────────────────────────────────────────────────
+
+# jj commands (15)
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["jj", "init",        "allowed",    "Initialize new repo",                    "manifest", "eternal"],
+  ["jj", "new",         "allowed",    "Create new empty change",                "manifest", "eternal"],
+  ["jj", "describe",    "restricted", "Set change description (-m required)",   "manifest", "eternal"],
+  ["jj", "commit",      "restricted", "Finalize current change (-m required)",  "manifest", "eternal"],
+  ["jj", "squash",      "allowed",    "Squash changes into parent",             "manifest", "eternal"],
+  ["jj", "abandon",     "allowed",    "Abandon a change",                       "manifest", "eternal"],
+  ["jj", "edit",        "allowed",    "Edit an existing change",                "manifest", "eternal"],
+  ["jj", "log",         "allowed",    "Show revision history",                  "manifest", "eternal"],
+  ["jj", "diff",        "allowed",    "Show diff of changes",                   "manifest", "eternal"],
+  ["jj", "status",      "allowed",    "Show working copy status",               "manifest", "eternal"],
+  ["jj", "bookmark",    "allowed",    "Manage bookmarks (branches)",            "manifest", "eternal"],
+  ["jj", "git push",    "allowed",    "Push to git remote",                     "manifest", "eternal"],
+  ["jj", "git fetch",   "allowed",    "Fetch from git remote",                  "manifest", "eternal"],
+  ["jj", "git clone",   "allowed",    "Clone a git repository via jj",          "manifest", "eternal"],
+  ["jj", "rebase",      "allowed",    "Rebase changes onto new parent",         "manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+# git commands (12 — all disallowed)
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["git", "init",     "disallowed", "Use jj init instead",               "manifest", "eternal"],
+  ["git", "clone",    "disallowed", "Use jj git clone instead",          "manifest", "eternal"],
+  ["git", "add",      "disallowed", "jj tracks automatically",           "manifest", "eternal"],
+  ["git", "commit",   "disallowed", "Use jj commit or jj describe",     "manifest", "eternal"],
+  ["git", "push",     "disallowed", "Use jj git push instead",          "manifest", "eternal"],
+  ["git", "pull",     "disallowed", "Use jj git fetch instead",         "manifest", "eternal"],
+  ["git", "fetch",    "disallowed", "Use jj git fetch instead",         "manifest", "eternal"],
+  ["git", "branch",   "disallowed", "Use jj bookmark instead",          "manifest", "eternal"],
+  ["git", "checkout", "disallowed", "Use jj new or jj edit instead",    "manifest", "eternal"],
+  ["git", "merge",    "disallowed", "Use jj new with multiple parents", "manifest", "eternal"],
+  ["git", "rebase",   "disallowed", "Use jj rebase instead",            "manifest", "eternal"],
+  ["git", "log",      "disallowed", "Use jj log instead",               "manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+# nix commands (6)
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["nix", "develop",  "restricted", "Enter dev shell (--impure forbidden)", "manifest", "eternal"],
+  ["nix", "build",    "restricted", "Build a flake output (--impure forbidden)", "manifest", "eternal"],
+  ["nix", "flake update", "allowed", "Update flake inputs",               "manifest", "eternal"],
+  ["nix", "flake lock",   "allowed", "Update specific flake input locks", "manifest", "eternal"],
+  ["nix", "run",      "allowed",    "Run a flake app",                    "manifest", "eternal"],
+  ["nix", "eval",     "allowed",    "Evaluate a Nix expression",          "manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+# cargo commands (8)
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["cargo", "build",   "allowed",    "Build Rust project",                "manifest", "eternal"],
+  ["cargo", "test",    "allowed",    "Run tests",                         "manifest", "eternal"],
+  ["cargo", "check",   "allowed",    "Type-check without building",       "manifest", "eternal"],
+  ["cargo", "clippy",  "allowed",    "Run linter",                        "manifest", "eternal"],
+  ["cargo", "fmt",     "allowed",    "Format Rust code",                  "manifest", "eternal"],
+  ["cargo", "run",     "allowed",    "Run binary",                        "manifest", "eternal"],
+  ["cargo", "doc",     "allowed",    "Generate documentation",            "manifest", "eternal"],
+  ["cargo", "add",     "restricted", "Add dependency (verify crate first)", "manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+# gh commands (8)
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["gh", "repo view",    "allowed",    "View repository info",               "manifest", "eternal"],
+  ["gh", "repo create",  "restricted", "Create repo (confirm with user)",    "manifest", "eternal"],
+  ["gh", "pr create",    "disallowed", "PRs not used — push to main",       "manifest", "eternal"],
+  ["gh", "pr merge",     "disallowed", "PRs not used — push to main",       "manifest", "eternal"],
+  ["gh", "issue list",   "allowed",    "List issues",                        "manifest", "eternal"],
+  ["gh", "issue view",   "allowed",    "View issue details",                 "manifest", "eternal"],
+  ["gh", "issue create", "restricted", "Create issue (confirm with user)",   "manifest", "eternal"],
+  ["gh", "release",      "restricted", "Manage releases (confirm with user)","manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+# sqlite, capnpc, gopass, MCP servers
+?[tool, subcommand, status, description, phase, dignity] <- [
+  ["sqlite",          ".dump",     "allowed",  "Dump database for diagnostics",        "manifest", "eternal"],
+  ["sqlite",          ".schema",   "allowed",  "Show schema for diagnostics",          "manifest", "eternal"],
+  ["capnpc",          "compile",   "allowed",  "Compile Cap'n Proto schemas",          "manifest", "eternal"],
+  ["gopass",          "show",      "allowed",  "Retrieve a secret",                    "manifest", "eternal"],
+  ["gopass",          "insert",    "restricted","Insert secret (confirm with user)",    "manifest", "eternal"],
+  ["rust-analyzer",   "diagnostics","internal", "LSP diagnostics — runs automatically","manifest", "eternal"],
+  ["samskara",        "query",     "allowed",  "Execute CozoScript on world.db",       "manifest", "eternal"],
+  ["samskara",        "commit",    "allowed",  "Commit world state",                   "manifest", "eternal"],
+  ["samskara-reader", "query",     "allowed",  "Read-only CozoScript on world.db",     "manifest", "eternal"],
+  ["criome-stored",   "put",       "allowed",  "Store blob",                           "manifest", "eternal"],
+  ["criome-stored",   "get",       "allowed",  "Retrieve blob",                        "manifest", "eternal"],
+  ["annas-archive",   "search",    "allowed",  "Search Anna's Archive",                "manifest", "eternal"],
+  ["annas-archive",   "details",   "allowed",  "Get item details",                     "manifest", "eternal"]
+]
+:put sys_command { tool, subcommand => status, description, phase, dignity }
+
+#── sys_command_flag seed ─────────────────────────────────────────────
+
+?[tool, subcommand, flag, constraint, description, phase, dignity] <- [
+  ["jj",    "describe",  "-m",       "required",  "Always pass message inline — never open editor",  "manifest", "eternal"],
+  ["jj",    "commit",    "-m",       "required",  "Always pass message inline — never open editor",  "manifest", "eternal"],
+  ["nix",   "develop",   "--impure", "forbidden", "Impure builds violate reproducibility",           "manifest", "eternal"],
+  ["nix",   "build",     "--impure", "forbidden", "Impure builds violate reproducibility",           "manifest", "eternal"],
+  ["cargo", "add",       "--git",    "optional",  "Use git source when crate not on crates.io",      "manifest", "eternal"],
+  ["jj",    "git push",  "--all",    "optional",  "Push all bookmarks",                              "manifest", "eternal"],
+  ["jj",    "bookmark",  "set",      "optional",  "Set bookmark to current change",                  "manifest", "eternal"],
+  ["gh",    "repo create","--private","optional",  "Default repos should be private",                 "manifest", "eternal"]
+]
+:put sys_command_flag { tool, subcommand, flag => constraint, description, phase, dignity }
+
+#── sys_command_alt seed ──────────────────────────────────────────────
+
+?[tool, subcommand, alt_tool, alt_subcommand, description, phase, dignity] <- [
+  ["git", "init",     "jj", "init",       "jj init creates jj repo with git backend",     "manifest", "eternal"],
+  ["git", "clone",    "jj", "git clone",  "jj git clone wraps git clone with jj tracking", "manifest", "eternal"],
+  ["git", "add",      "jj", "status",     "jj auto-tracks — no staging needed",            "manifest", "eternal"],
+  ["git", "commit",   "jj", "commit",     "jj commit -m finalizes current change",         "manifest", "eternal"],
+  ["git", "push",     "jj", "git push",   "jj git push pushes bookmarks to remote",        "manifest", "eternal"],
+  ["git", "pull",     "jj", "git fetch",  "jj git fetch + jj rebase for pull",             "manifest", "eternal"],
+  ["git", "fetch",    "jj", "git fetch",  "jj git fetch fetches from remote",              "manifest", "eternal"],
+  ["git", "branch",   "jj", "bookmark",   "jj bookmark replaces git branch",               "manifest", "eternal"],
+  ["git", "checkout", "jj", "new",        "jj new or jj edit replaces checkout",            "manifest", "eternal"],
+  ["git", "merge",    "jj", "new",        "jj new rev1 rev2 creates merge change",          "manifest", "eternal"],
+  ["git", "rebase",   "jj", "rebase",     "jj rebase -r/-s/-b for rebasing",               "manifest", "eternal"],
+  ["git", "log",      "jj", "log",        "jj log shows revision history",                  "manifest", "eternal"]
+]
+:put sys_command_alt { tool, subcommand => alt_tool, alt_subcommand, description, phase, dignity }
+
+#── sys_workflow_meta seed ────────────────────────────────────────────
+
+?[workflow, name, description, scope, phase, dignity] <- [
+  ["new-repo-init",   "New Repository Init",  "Initialize a new micro-repo with jj, flake, and CLAUDE.md", "global", "manifest", "eternal"],
+  ["commit-push",     "Commit and Push",       "Describe change, set bookmark, push to main",               "global", "manifest", "eternal"],
+  ["flake-input-add", "Add Flake Input",       "Add a new input to a flake and update locks",               "global", "manifest", "eternal"]
+]
+:put sys_workflow_meta { workflow => name, description, scope, phase, dignity }
+
+#── sys_workflow seed ─────────────────────────────────────────────────
+
+# new-repo-init (6 steps)
+?[workflow, step, tool, subcommand, flags, description, phase, dignity] <- [
+  ["new-repo-init", 1, "jj",  "init",      "",   "Initialize jj repo (creates .jj/ with git backend)", "manifest", "eternal"],
+  ["new-repo-init", 2, "nix",  "flake init","",   "Create initial flake.nix",                           "manifest", "eternal"],
+  ["new-repo-init", 3, "jj",  "describe",  "-m", "Describe initial change",                             "manifest", "eternal"],
+  ["new-repo-init", 4, "jj",  "new",       "",   "Create new change after initial",                     "manifest", "eternal"],
+  ["new-repo-init", 5, "jj",  "bookmark",  "set main -r @-", "Set main bookmark on initial change",    "manifest", "eternal"],
+  ["new-repo-init", 6, "jj",  "git push",  "--all", "Push all bookmarks to remote",                     "manifest", "eternal"]
+]
+:put sys_workflow { workflow, step => tool, subcommand, flags, description, phase, dignity }
+
+# commit-push (4 steps)
+?[workflow, step, tool, subcommand, flags, description, phase, dignity] <- [
+  ["commit-push", 1, "jj", "describe",  "-m '(sol)(luna)(saturnus)'", "Set CozoScript tuple commit message",  "manifest", "eternal"],
+  ["commit-push", 2, "jj", "new",       "",                           "Create new empty change",               "manifest", "eternal"],
+  ["commit-push", 3, "jj", "bookmark",  "set main -r @-",            "Advance main bookmark to described change", "manifest", "eternal"],
+  ["commit-push", 4, "jj", "git push",  "",                           "Push main to remote",                   "manifest", "eternal"]
+]
+:put sys_workflow { workflow, step => tool, subcommand, flags, description, phase, dignity }
+
+# flake-input-add (4 steps)
+?[workflow, step, tool, subcommand, flags, description, phase, dignity] <- [
+  ["flake-input-add", 1, "nix",  "eval",        "",   "Verify input URL resolves",              "manifest", "eternal"],
+  ["flake-input-add", 2, "nix",  "flake lock",  "--update-input", "Lock the new input",         "manifest", "eternal"],
+  ["flake-input-add", 3, "nix",  "build",       "",   "Verify build succeeds with new input",   "manifest", "eternal"],
+  ["flake-input-add", 4, "jj",   "describe",    "-m", "Describe the flake input addition",      "manifest", "eternal"]
+]
+:put sys_workflow { workflow, step => tool, subcommand, flags, description, phase, dignity }

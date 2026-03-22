@@ -298,4 +298,78 @@
   capnp_schema: String
 }
 
+#── System call taxonomy layer ────────────────────────────────────────
+#Defines allowed/disallowed CLI commands, flag constraints, alternatives,
+#and workflow templates. Queryable by any agent via samskara-reader.
+
+:create Tool {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create CommandStatus {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create FlagConstraint {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sys_command {
+  tool: String,
+  subcommand: String =>
+  status: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sys_command_flag {
+  tool: String,
+  subcommand: String,
+  flag: String =>
+  constraint: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sys_command_alt {
+  tool: String,
+  subcommand: String =>
+  alt_tool: String,
+  alt_subcommand: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sys_workflow {
+  workflow: String,
+  step: Int =>
+  tool: String,
+  subcommand: String,
+  flags: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sys_workflow_meta {
+  workflow: String =>
+  name: String,
+  description: String,
+  scope: String,
+  phase: String,
+  dignity: String
+}
+
 #blob relation belongs to criome-stored, not samskara.

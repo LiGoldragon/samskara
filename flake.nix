@@ -59,7 +59,7 @@
         };
 
         devShells.default = craneLib.devShell {
-          packages = with pkgs; [ rust-analyzer sqlite capnproto ];
+          packages = with pkgs; [ rust-analyzer sqlite capnproto jujutsu ];
         };
       }
     );
