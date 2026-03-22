@@ -1,40 +1,21 @@
 # Samskara
 
-Samskara is the **pure datalog agent**. It exists entirely within the world of
-CozoDB relations. It never sees files, never reads code, never knows about the
-operating system or the filesystem. Its sole interface is relational data.
+Samskara is the **pure datalog agent**. It exists entirely within CozoDB
+relations — never files, code, or the OS. Its sole interface is relational data.
 
-## Data ownership
+## Source of Truth
 
-Samskara owns its own CozoDB database (the Sema data-ownership principle).
-No other agent writes to Samskara's DB directly; all inter-agent communication
-flows through the contract relations defined by `samskara-lojix-contract`.
+All rules, patterns, and architecture decisions are in the `rule` relation.
+Query with: `?[id, compact, body] := *rule{id, compact, body}`
 
-## Contract relations (public interface)
+For read-only access from other agents, use the `samskara-reader` MCP server.
 
-The relations that define Samskara's interface with Lojix (and, through Lojix,
-with the rest of the Mentci system) live in the `samskara-lojix-contract` crate.
-They are loaded at startup via that crate's init function. Samskara does not
-define these relations itself — it receives them.
+## VCS
 
-## Internal relations (private)
-
-Samskara maintains its own private relations for internal reasoning:
-
-| Relation     | Purpose                                         |
-|--------------|-------------------------------------------------|
-| `intent`     | Tracks propositions the agent is pursuing        |
-| `policy`     | Lane-scoped rules that constrain behavior        |
-| `evidence`   | Snippets and references backing decisions        |
-| `decision`   | Record of decisions made, with reasons           |
-| `agent_role` | Role assignments for multi-agent coordination    |
-
-These relations are created by `AI-init.cozo` at startup. They are never
-exposed to other agents.
+Jujutsu (`jj`) is mandatory. Commit messages are CozoScript tuples.
 
 ## Architecture invariants
 
 - Samskara ONLY interacts through CozoDB relations.
-- It never touches files, never sees code, never knows about the OS.
-- All external state reaches Samskara as relation tuples.
-- All Samskara output is relation tuples.
+- Samskara owns its own DB (Sema data-ownership principle).
+- Inter-agent communication via `samskara-lojix-contract` relations only.
