@@ -363,6 +363,15 @@
   dignity: String
 }
 
+:create sys_command_usage {
+  tool: String,
+  subcommand: String =>
+  notes: String,
+  examples: String,
+  phase: String,
+  dignity: String
+}
+
 :create sys_workflow_meta {
   workflow: String =>
   name: String,
