@@ -381,4 +381,34 @@
   dignity: String
 }
 
+#── Sandbox layer ─────────────────────────────────────────────────────
+#Per-agent sandbox environments with controlled DB access.
+#Each sandbox maps to a dev shell in mentci-box and an agent in the registry.
+
+:create DbAccess {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sandbox {
+  id: String =>
+  agent_id: String,
+  name: String,
+  db_access: String,
+  base_shell: String,
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create sandbox_permission {
+  sandbox_id: String,
+  relation_name: String =>
+  access: String,
+  phase: String,
+  dignity: String
+}
+
 #blob relation belongs to criome-stored, not samskara.

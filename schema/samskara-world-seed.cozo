@@ -658,3 +658,31 @@
    "manifest", "eternal"]
 ]
 :put sys_command_usage { tool, subcommand => notes, examples, phase, dignity }
+
+#── Sandbox layer seeds ───────────────────────────────────────────────
+
+?[name, description, phase, dignity] <- [
+  ["DbAccess", "Database access levels for sandboxes", "manifest", "eternal"]
+]
+:put Enum { name => description, phase, dignity }
+
+?[name, description, phase, dignity] <- [
+  ["read-write", "Full mutation access to world.db", "manifest", "eternal"],
+  ["read-only",  "Query-only access to world.db",    "manifest", "eternal"],
+  ["snapshot",   "Read from a point-in-time copy",    "manifest", "eternal"]
+]
+:put DbAccess { name => description, phase, dignity }
+
+?[id, name, role, email, phase, dignity] <- [
+  ["claude-researcher", "Claude Researcher", "researcher", "noreply@anthropic.com", "manifest", "seen"],
+  ["claude-architect",  "Claude Architect",  "architect",  "noreply@anthropic.com", "manifest", "seen"],
+  ["claude-reviewer",   "Claude Reviewer",   "reviewer",   "noreply@anthropic.com", "manifest", "seen"]
+]
+:put agent { id => name, role, email, phase, dignity }
+
+?[id, agent_id, name, db_access, base_shell, description, phase, dignity] <- [
+  ["box-researcher", "claude-researcher", "researcher", "read-only",  "reader",  "Read-only research agent — can query world.db and search archives",      "manifest", "proven"],
+  ["box-architect",  "claude-architect",  "architect",  "read-write", "default", "Architecture agent — can propose DB changes for review",                 "manifest", "proven"],
+  ["box-reviewer",   "claude-reviewer",   "reviewer",   "read-only",  "reader",  "Review agent — audits changes and validates world state",               "manifest", "proven"]
+]
+:put sandbox { id => agent_id, name, db_access, base_shell, description, phase, dignity }
