@@ -1,72 +1,72 @@
 #── Enum registry seed ─────────────────────────────────────────────────
 
-?[name, description] <- [
-  ["Enum",       "Registry of all categorical type relations"],
-  ["Phase",      "Lifecycle tri-state: manifest/becoming/retired"],
-  ["Dignity",    "Epistemological trust hierarchy"],
-  ["CommitType", "Jujutsu commit classification"],
-  ["Action",     "Commit transformation verb"],
-  ["Verdict",    "Commit context judgment"],
-  ["Element",    "Four classical elements — fire/water/air/earth"],
-  ["Modality",   "Three modalities — mutable/cardinal/fixed"],
-  ["Sign",       "Twelve zodiacal signs"],
-  ["Planet",     "Seven classical planets + nodes"],
-  ["Rulership",  "Planet-Sign dignity assignments — domicile/exaltation/detriment/fall"],
-  ["Aspect",     "Geometric relationships between signs"],
-  ["SourceType", "Fetcher types for external sources — mirrors Nix fetchurl/fetchgit/etc"]
+?[name, description, phase, dignity] <- [
+  ["Enum",       "Registry of all categorical type relations", "manifest", "eternal"],
+  ["Phase",      "Lifecycle tri-state: manifest/becoming/retired", "manifest", "eternal"],
+  ["Dignity",    "Epistemological trust hierarchy", "manifest", "eternal"],
+  ["CommitType", "Jujutsu commit classification", "manifest", "eternal"],
+  ["Action",     "Commit transformation verb", "manifest", "eternal"],
+  ["Verdict",    "Commit context judgment", "manifest", "eternal"],
+  ["Element",    "Four classical elements — fire/water/air/earth", "manifest", "eternal"],
+  ["Modality",   "Three modalities — mutable/cardinal/fixed", "manifest", "eternal"],
+  ["Sign",       "Twelve zodiacal signs", "manifest", "eternal"],
+  ["Planet",     "Seven classical planets + nodes", "manifest", "eternal"],
+  ["Rulership",  "Planet-Sign dignity assignments — domicile/exaltation/detriment/fall", "manifest", "eternal"],
+  ["Aspect",     "Geometric relationships between signs", "manifest", "eternal"],
+  ["SourceType", "Fetcher types for external sources — mirrors Nix fetchurl/fetchgit/etc", "manifest", "eternal"]
 ]
-:put Enum { name => description }
+:put Enum { name => description, phase, dignity }
 
 #Phase and Dignity seeds are loaded by samskara-core during core_genesis.
 
 #── CommitType seed (manifest — what kind of change) ──────────────────
 
-?[name, description] <- [
-  ["fix",       "Bug fix or correction"],
-  ["feat",      "New feature or capability"],
-  ["doctrine",  "Foundational invariant or principle change"],
-  ["refactor",  "Restructure without behavior change"],
-  ["schema",    "Relation schema change"],
-  ["contract",  "Cross-component contract change"],
-  ["codegen",   "Generated code or build pipeline change"],
-  ["prune",     "Remove dead code or obsolete content"],
-  ["doc",       "Documentation only"],
-  ["nix",       "Nix flake or dev shell change"],
-  ["test",      "Test addition or modification"],
-  ["migrate",   "Data or naming migration"]
+?[name, description, phase, dignity] <- [
+  ["fix",       "Bug fix or correction", "manifest", "eternal"],
+  ["feat",      "New feature or capability", "manifest", "eternal"],
+  ["doctrine",  "Foundational invariant or principle change", "manifest", "eternal"],
+  ["refactor",  "Restructure without behavior change", "manifest", "eternal"],
+  ["schema",    "Relation schema change", "manifest", "eternal"],
+  ["contract",  "Cross-component contract change", "manifest", "eternal"],
+  ["codegen",   "Generated code or build pipeline change", "manifest", "eternal"],
+  ["prune",     "Remove dead code or obsolete content", "manifest", "eternal"],
+  ["doc",       "Documentation only", "manifest", "eternal"],
+  ["nix",       "Nix flake or dev shell change", "manifest", "eternal"],
+  ["test",      "Test addition or modification", "manifest", "eternal"],
+  ["migrate",   "Data or naming migration", "manifest", "eternal"]
 ]
-:put CommitType { name => description }
+:put CommitType { name => description, phase, dignity }
 
 #── Action seed (becoming — what transformation verb) ─────────────────
 
-?[name, description] <- [
-  ["add",      "Introduce something new"],
-  ["remove",   "Delete something entirely"],
-  ["rename",   "Change the name of something"],
-  ["rewrite",  "Replace content with new version"],
-  ["extract",  "Pull out into its own unit"],
-  ["merge",    "Combine multiple things into one"],
-  ["split",    "Divide one thing into multiple"],
-  ["move",     "Relocate without changing content"],
-  ["replace",  "Swap one thing for another"],
-  ["fix",      "Correct an error"],
-  ["extend",   "Add to an existing thing"],
-  ["reduce",   "Simplify or shrink"]
+?[name, description, phase, dignity] <- [
+  ["add",      "Introduce something new", "manifest", "eternal"],
+  ["remove",   "Delete something entirely", "manifest", "eternal"],
+  ["rename",   "Change the name of something", "manifest", "eternal"],
+  ["rewrite",  "Replace content with new version", "manifest", "eternal"],
+  ["extract",  "Pull out into its own unit", "manifest", "eternal"],
+  ["merge",    "Combine multiple things into one", "manifest", "eternal"],
+  ["split",    "Divide one thing into multiple", "manifest", "eternal"],
+  ["move",     "Relocate without changing content", "manifest", "eternal"],
+  ["replace",  "Swap one thing for another", "manifest", "eternal"],
+  ["fix",      "Correct an error", "manifest", "eternal"],
+  ["extend",   "Add to an existing thing", "manifest", "eternal"],
+  ["reduce",   "Simplify or shrink", "manifest", "eternal"]
 ]
-:put Action { name => description }
+:put Action { name => description, phase, dignity }
 
 #── Verdict seed (retired — why the change was needed) ────────────────
 
-?[name, description] <- [
-  ["error",      "Something was wrong or broken"],
-  ["evolution",  "Natural growth beyond previous form"],
-  ["dependency", "Required by an upstream or downstream change"],
-  ["gap",        "Missing capability or coverage"],
-  ["redundancy", "Unnecessary duplication or coupling"],
-  ["violation",  "Broke an invariant or principle"],
-  ["drift",      "Gradual divergence from intended state"]
+?[name, description, phase, dignity] <- [
+  ["error",      "Something was wrong or broken", "manifest", "eternal"],
+  ["evolution",  "Natural growth beyond previous form", "manifest", "eternal"],
+  ["dependency", "Required by an upstream or downstream change", "manifest", "eternal"],
+  ["gap",        "Missing capability or coverage", "manifest", "eternal"],
+  ["redundancy", "Unnecessary duplication or coupling", "manifest", "eternal"],
+  ["violation",  "Broke an invariant or principle", "manifest", "eternal"],
+  ["drift",      "Gradual divergence from intended state", "manifest", "eternal"]
 ]
-:put Verdict { name => description }
+:put Verdict { name => description, phase, dignity }
 
 #── Agent seed ──────────────────────────────────────────────────────
 
@@ -154,22 +154,22 @@
 
 #── Element seed ───────────────────────────────────────────────────────
 
-?[name, quality, description] <- [
-  ["fire",  "spontaneous", "Identity, will, spirit — what IS"],
-  ["water", "change",      "Feeling, soul, transformation — what MOVES"],
-  ["air",   "conceptual",  "Thought, mind, relationship — what RELATES"],
-  ["earth", "practical",   "Body, matter, manifestation — what ENDURES"]
+?[name, quality, description, phase, dignity] <- [
+  ["fire",  "spontaneous", "Identity, will, spirit — what IS", "manifest", "eternal"],
+  ["water", "change",      "Feeling, soul, transformation — what MOVES", "manifest", "eternal"],
+  ["air",   "conceptual",  "Thought, mind, relationship — what RELATES", "manifest", "eternal"],
+  ["earth", "practical",   "Body, matter, manifestation — what ENDURES", "manifest", "eternal"]
 ]
-:put Element { name => quality, description }
+:put Element { name => quality, description, phase, dignity }
 
 #── Modality seed ──────────────────────────────────────────────────────
 
-?[name, role, description] <- [
-  ["mutable",  "stimulus", "Adaptable, distributive — the WHY (motive, context)"],
-  ["cardinal", "action",   "Initiating, directive — the HOW (acceleration, change)"],
-  ["fixed",    "state",    "Sustaining, concentrative — the WHAT (persistence, form)"]
+?[name, role, description, phase, dignity] <- [
+  ["mutable",  "stimulus", "Adaptable, distributive — the WHY (motive, context)", "manifest", "eternal"],
+  ["cardinal", "action",   "Initiating, directive — the HOW (acceleration, change)", "manifest", "eternal"],
+  ["fixed",    "state",    "Sustaining, concentrative — the WHAT (persistence, form)", "manifest", "eternal"]
 ]
-:put Modality { name => role, description }
+:put Modality { name => role, description, phase, dignity }
 
 #── Sign seed ──────────────────────────────────────────────────────────
 
@@ -264,14 +264,14 @@
 
 #── Aspect seed ────────────────────────────────────────────────────────
 
-?[name, degrees, nature, description] <- [
-  ["conjunction", 0,   "fusion",     "Unity — merging of principles"],
-  ["sextile",     60,  "harmony",    "Opportunity — compatible elements cooperate"],
-  ["square",      90,  "tension",    "Crisis — forced action, the T operator"],
-  ["trine",       120, "flow",       "Grace — same element, natural affinity"],
-  ["opposition",  180, "polarity",   "Awareness — complementary tension across the axis"]
+?[name, degrees, nature, description, phase, dignity] <- [
+  ["conjunction", 0,   "fusion",     "Unity — merging of principles", "manifest", "eternal"],
+  ["sextile",     60,  "harmony",    "Opportunity — compatible elements cooperate", "manifest", "eternal"],
+  ["square",      90,  "tension",    "Crisis — forced action, the T operator", "manifest", "eternal"],
+  ["trine",       120, "flow",       "Grace — same element, natural affinity", "manifest", "eternal"],
+  ["opposition",  180, "polarity",   "Awareness — complementary tension across the axis", "manifest", "eternal"]
 ]
-:put Aspect { name => degrees, nature, description }
+:put Aspect { name => degrees, nature, description, phase, dignity }
 
 #── Measure seed (Young, The Geometry of Meaning) ─────────────────────
 # The twelve measure formulae of physics mapped to the zodiac.

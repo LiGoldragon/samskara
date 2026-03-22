@@ -4,7 +4,9 @@
 
 :create Enum {
   name: String =>
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 #── Commit message enums ──────────────────────────────────────────────
@@ -15,17 +17,23 @@
 
 :create CommitType {
   name: String =>
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 :create Action {
   name: String =>
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 :create Verdict {
   name: String =>
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 #── Classical language equivalence layers ──────────────────────────
@@ -145,13 +153,17 @@
 :create Element {
   name: String =>
   quality: String,
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 :create Modality {
   name: String =>
   role: String,
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 :create Sign {
@@ -186,7 +198,9 @@
   name: String =>
   degrees: Int,
   nature: String,
-  description: String
+  description: String,
+  phase: String,
+  dignity: String
 }
 
 :create Measure {

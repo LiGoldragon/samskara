@@ -26,10 +26,6 @@ const ETERNAL_RELATIONS: &[&str] = &[
     "Phase", "Planet", "Sign",
 ];
 
-/// Relations from contracts (samskara-lojix).
-const CONTRACT_RELATIONS: &[&str] = &[
-    "transpiler_version", "eval_request", "eval_result",
-];
 
 /// Run the full genesis sequence: create all relations and load seed data.
 fn genesis(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>> {
@@ -55,7 +51,7 @@ fn genesis(db: &criome_cozo::CriomeDb) -> Result<(), Box<dyn std::error::Error>>
     tracing::info!("samskara-world seed loaded");
 
     // 6. Finalize: populate world_schema + create meta sentinel
-    boot::finalize_genesis(db, ETERNAL_RELATIONS, CONTRACT_RELATIONS)?;
+    boot::finalize_genesis(db, ETERNAL_RELATIONS)?;
 
     Ok(())
 }
