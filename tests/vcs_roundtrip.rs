@@ -40,8 +40,8 @@ fn row_count(result: &serde_json::Value) -> usize {
 const TEST_VERSIONED: &[&str] = &[
     "Aspect", "Dignity", "Element", "Enum", "Measure", "Modality",
     "Phase", "Planet", "Rulership", "Sign",
-    "agent", "agent_session", "latina", "principle", "repo", "repo_state",
-    "samskrta", "thought", "thought_link", "thought_tag", "trust_review",
+    "agent", "latina", "principle", "repo", "repo_state",
+    "samskrta", "thought", "thought_link", "thought_tag",
 ];
 
 #[test]

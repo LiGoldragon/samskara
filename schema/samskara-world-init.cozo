@@ -84,14 +84,6 @@
   tag: String
 }
 
-:create trust_review {
-  thought_id: String =>
-  reviewer: String,
-  verdict: String,
-  reason: String,
-  ts: String
-}
-
 #── Agent layer ─────────────────────────────────────────────────────
 
 :create agent {
@@ -99,17 +91,6 @@
   name: String,
   role: String,
   email: String,
-  phase: String,
-  dignity: String
-}
-
-:create agent_session {
-  session_id: String =>
-  agent_id: String,
-  started_ts: String,
-  ended_ts: String,
-  repo_scope: String,
-  summary: String,
   phase: String,
   dignity: String
 }
@@ -265,17 +246,6 @@
   dignity: String
 }
 
-:create relation_transformation {
-  id: String =>
-  domain_relation: String,
-  codomain_relation: String,
-  functor_a: String,
-  functor_b: String,
-  description: String,
-  phase: String,
-  dignity: String
-}
-
 :create relation_tradition {
   relation_name: String,
   tradition: String =>
@@ -286,17 +256,6 @@
 }
 
 #VCS relations (world_commit, world_manifest, etc.) are created by samskara-core.
-
-#── Archive layer ───────────────────────────────────────────────────
-#Cap'n Proto reader version registry. Headers stored once per schema
-#version; data blocks are headerless, indexed by content hash.
-
-:create archive_reader_version {
-  version_id: String =>
-  schema_hash: String,
-  segment_table: String,
-  capnp_schema: String
-}
 
 #── System call taxonomy layer ────────────────────────────────────────
 #Defines allowed/disallowed CLI commands, flag constraints, alternatives,
@@ -399,14 +358,6 @@
   db_access: String,
   base_shell: String,
   description: String,
-  phase: String,
-  dignity: String
-}
-
-:create sandbox_permission {
-  sandbox_id: String,
-  relation_name: String =>
-  access: String,
   phase: String,
   dignity: String
 }

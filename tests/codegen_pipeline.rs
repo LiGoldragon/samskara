@@ -58,7 +58,6 @@ fn full_pipeline_samskara_world() {
     // Basic structure checks
     assert!(capnp_text.contains("@0x"), "should have file ID");
     assert!(capnp_text.contains("struct Thought"), "should have Thought struct");
-    assert!(capnp_text.contains("struct AgentSession"), "should have AgentSession struct");
     assert!(capnp_text.contains("struct WorldCommit"), "should have WorldCommit struct");
     assert!(capnp_text.contains("enum Phase"), "should have Phase enum");
     assert!(capnp_text.contains("enum Dignity"), "should have Dignity enum");
