@@ -38,7 +38,7 @@ fn row_count(result: &serde_json::Value) -> usize {
 
 /// Fallback versioned relations for test (no world_schema populated).
 const TEST_VERSIONED: &[&str] = &[
-    "Aspect", "Dignity", "Element", "Enum", "Measure", "Modality",
+    "Aspect", "Dignity", "Domain", "Element", "Measure", "Modality",
     "Phase", "Planet", "Rulership", "Sign",
     "agent", "latina", "principle", "repo", "repo_state",
     "samskrta", "thought", "thought_link", "thought_tag",

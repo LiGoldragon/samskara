@@ -1,8 +1,9 @@
-#── Enum registry ───────────────────────────────────────────────────
-#Self-registering: Enum lists itself. A PascalCase relation is an enum
+#── Domain registry ─────────────────────────────────────────────────
+#Self-registering: Domain lists itself. A PascalCase relation is a domain
 #if and only if it appears in this registry AND has a single String key.
+#A domain is a controlled vocabulary — the set of permitted values (Date).
 
-:create Enum {
+:create Domain {
   name: String =>
   description: String,
   phase: String,
@@ -236,7 +237,7 @@
   dignity: String
 }
 
-:create relation_morphism {
+:create morphism {
   source: String,
   target: String,
   via: String =>

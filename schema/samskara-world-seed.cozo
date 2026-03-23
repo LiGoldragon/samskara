@@ -1,7 +1,7 @@
-#── Enum registry seed ─────────────────────────────────────────────────
+#── Domain registry seed ────────────────────────────────────────────────
 
 ?[name, description, phase, dignity] <- [
-  ["Enum",       "Registry of all categorical type relations", "manifest", "eternal"],
+  ["Domain",     "Registry of all controlled vocabularies (Date: permitted value sets)", "manifest", "eternal"],
   ["Phase",      "Lifecycle tri-state: manifest/becoming/retired", "manifest", "eternal"],
   ["Dignity",    "Epistemological trust hierarchy", "manifest", "eternal"],
   ["CommitType", "Jujutsu commit classification", "manifest", "eternal"],
@@ -15,7 +15,7 @@
   ["Aspect",     "Geometric relationships between signs", "manifest", "eternal"],
   ["SourceType", "Fetcher types for external sources — mirrors Nix fetchurl/fetchgit/etc", "manifest", "eternal"]
 ]
-:put Enum { name => description, phase, dignity }
+:put Domain { name => description, phase, dignity }
 
 #Phase and Dignity seeds are loaded by samskara-core during core_genesis.
 
@@ -326,7 +326,7 @@
   ["CommandStatus",  "Permission states for system commands",          "manifest", "eternal"],
   ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"]
 ]
-:put Enum { name => description, phase, dignity }
+:put Domain { name => description, phase, dignity }
 
 # CommandStatus enum
 ?[name, description, phase, dignity] <- [
@@ -664,7 +664,7 @@
 ?[name, description, phase, dignity] <- [
   ["DbAccess", "Database access levels for sandboxes", "manifest", "eternal"]
 ]
-:put Enum { name => description, phase, dignity }
+:put Domain { name => description, phase, dignity }
 
 ?[name, description, phase, dignity] <- [
   ["read-write", "Full mutation access to world.db", "manifest", "eternal"],
