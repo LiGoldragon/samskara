@@ -3,3 +3,8 @@
 result
 *.db
 !world.db
+
+# Emacs
+\#*\#
+*~
+.\#*
