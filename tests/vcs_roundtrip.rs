@@ -90,19 +90,19 @@ fn full_vcs_roundtrip() {
     assert!(row_count(&snaps) >= 10, "should have snapshots for all versioned relations");
 
     // Count manifest thoughts AFTER genesis (becoming thoughts were promoted)
-    let post_genesis_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    let post_genesis_thoughts = query_str(&db, "?[kind, scope, title_hash] := *thought{kind, scope, title_hash, phase}, phase == \"manifest\"");
     let genesis_count = row_count(&post_genesis_thoughts);
     assert!(genesis_count > 0, "should have manifest thoughts after genesis");
 
     // ── Mutate: add a becoming-phase thought ─────────────────────────
 
     db.run_script(
-        r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
-            "test-new-1", "observation", "global", "draft", "New thought",
+        r#"?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
+            "observation", "global", "abcdef0123456789", "draft", "New thought",
             "This is a test thought added after genesis.",
             "2026-03-18", "2026-03-18", "becoming", "seen"
         ]]
-        :put thought { id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }"#,
+        :put thought { kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }"#,
     )
     .expect("assert new thought");
 
@@ -121,10 +121,10 @@ fn full_vcs_roundtrip() {
     let second_hash = second.world_hash.clone();
 
     // Verify becoming→manifest promotion happened
-    let becoming_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"becoming\"");
+    let becoming_after = query_str(&db, "?[kind, scope, title_hash] := *thought{kind, scope, title_hash, phase}, phase == \"becoming\"");
     assert_eq!(row_count(&becoming_after), 0, "no becoming thoughts after commit");
 
-    let manifest_after = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    let manifest_after = query_str(&db, "?[kind, scope, title_hash] := *thought{kind, scope, title_hash, phase}, phase == \"manifest\"");
     assert_eq!(row_count(&manifest_after), genesis_count + 1, "should have one more manifest thought");
 
     // Verify deltas were recorded
@@ -142,14 +142,14 @@ fn full_vcs_roundtrip() {
     assert!(restore.relations_restored > 0);
 
     // Verify state matches genesis
-    let restored_thoughts = query_str(&db, "?[id] := *thought{id, phase}, phase == \"manifest\"");
+    let restored_thoughts = query_str(&db, "?[kind, scope, title_hash] := *thought{kind, scope, title_hash, phase}, phase == \"manifest\"");
     assert_eq!(
         row_count(&restored_thoughts), genesis_count,
         "restored state should match genesis thought count"
     );
 
     // The new thought should not exist
-    let new_thought = query_str(&db, "?[id] := *thought{id}, id == \"test-new-1\"");
+    let new_thought = query_str(&db, "?[kind] := *thought{kind, scope, title_hash}, kind == \"observation\", title_hash == \"abcdef0123456789\"");
     assert_eq!(row_count(&new_thought), 0, "new thought should not exist after restore");
 
     // ── Third commit after restore ──────────────────────────────────

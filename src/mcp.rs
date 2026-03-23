@@ -18,15 +18,13 @@ pub use samskara_core::mcp::{
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct AssertThoughtParams {
-    /// Unique thought identifier
-    pub id: String,
-    /// Kind: user, feedback, project, reference, observation
+    /// Kind (Thought domain variant): user, feedback, project, reference, observation
     pub kind: String,
     /// Scope: repo name or "global"
     pub scope: String,
     /// Status: draft, proposed, approved
     pub status: String,
-    /// Short title
+    /// Short title — blake3 hash of this becomes part of the composite key
     pub title: String,
     /// Full body text
     pub body: String,
@@ -148,16 +146,17 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let now = chrono::Utc::now().to_rfc3339();
         let result = tokio::task::spawn_blocking(move || {
-            let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"");
+            let esc = |s: &str| s.replace('"', "\\\"");
+            let title_hash = &blake3::hash(params.title.as_bytes()).to_hex()[..16];
 
             let thought_script = format!(
-                r#"?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
+                r#"?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
                     "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}"
                 ]]
-                :put thought {{ id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }}"#,
-                esc(&params.id),
+                :put thought {{ kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }}"#,
                 esc(&params.kind),
                 esc(&params.scope),
+                title_hash,
                 esc(&params.status),
                 esc(&params.title),
                 esc(&params.body),
@@ -170,9 +169,11 @@ impl SamskaraMcp {
 
             for tag in &params.tags {
                 let tag_script = format!(
-                    r#"?[thought_id, tag] <- [["{}","{}"]]
-                    :put thought_tag {{ thought_id, tag }}"#,
-                    esc(&params.id),
+                    r#"?[kind, scope, title_hash, tag] <- [["{}","{}","{}","{}"]]
+                    :put thought_tag {{ kind, scope, title_hash, tag }}"#,
+                    esc(&params.kind),
+                    esc(&params.scope),
+                    title_hash,
                     esc(tag),
                 );
                 db.run_script_raw(&tag_script).map_err(|e| e.to_string())?;
@@ -180,7 +181,7 @@ impl SamskaraMcp {
 
             Ok::<String, String>(format!(
                 "Thought '{}' asserted with phase '{}', dignity '{}'",
-                params.id, params.phase, params.dignity
+                params.title, params.phase, params.dignity
             ))
         })
         .await;
@@ -212,17 +213,17 @@ impl SamskaraMcp {
 
             let base = if let Some(ref tag) = params.tag {
                 format!(
-                    "?[id, kind, scope, status, title, body, phase, dignity] := \
-                     *thought{{id, kind, scope, status, title, body, phase, dignity}}, \
-                     *thought_tag{{thought_id: id, tag: \"{}\"}}, \
+                    "?[kind, scope, status, title, body, phase, dignity] := \
+                     *thought{{kind, scope, title_hash, status, title, body, phase, dignity}}, \
+                     *thought_tag{{kind, scope, title_hash, tag: \"{}\"}}, \
                      {}",
                     tag.replace('"', "\\\""),
                     conditions.join(", ")
                 )
             } else {
                 format!(
-                    "?[id, kind, scope, status, title, body, phase, dignity] := \
-                     *thought{{id, kind, scope, status, title, body, phase, dignity}}, \
+                    "?[kind, scope, status, title, body, phase, dignity] := \
+                     *thought{{kind, scope, title_hash: _, status, title, body, phase, dignity}}, \
                      {}",
                     conditions.join(", ")
                 )

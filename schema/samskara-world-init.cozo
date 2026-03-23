@@ -87,9 +87,9 @@
 #── Knowledge layer ─────────────────────────────────────────────────
 
 :create thought {
-  id: String =>
   kind: String,
   scope: String,
+  title_hash: String =>
   status: String,
   title: String,
   body: String,
@@ -100,13 +100,19 @@
 }
 
 :create thought_link {
-  from_id: String,
-  to_id: String =>
+  from_kind: String,
+  from_scope: String,
+  from_hash: String,
+  to_kind: String,
+  to_scope: String,
+  to_hash: String =>
   rel_type: String
 }
 
 :create thought_tag {
-  thought_id: String,
+  kind: String,
+  scope: String,
+  title_hash: String,
   tag: String
 }
 

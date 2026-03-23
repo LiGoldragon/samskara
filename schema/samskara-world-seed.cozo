@@ -113,44 +113,44 @@
 
 #── Thought seed ────────────────────────────────────────────────────
 
-?[id, kind, scope, status, title, body, created_ts, updated_ts, phase, dignity] <- [
-  ["t-user-1", "user", "global", "approved", "Project owner: Li",
+?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- [
+  ["user", "global", "a80eef4686a9075a", "approved", "Project owner: Li",
    "mail@ligoldragon.com. Mentci creator. Prefers jj-centric workflow, Rust-only policy, datalog-native design.",
    "2026-03-16", "2026-03-16", "manifest", "proven"],
-  ["t-project-1", "project", "global", "approved", "Mentci v1 is successor to Mentci-AI (now Mentci-v0)",
+  ["project", "global", "f64cc491adb5549d", "approved", "Mentci v1 is successor to Mentci-AI (now Mentci-v0)",
    "Original at criome/Mentci renamed to criome/Mentci-v0. New project at LiGoldragon/Mentci. Two-agent architecture: Samskara (pure datalog) + Lojix (DSL transpiler).",
    "2026-03-16", "2026-03-16", "manifest", "proven"],
-  ["t-project-2", "project", "lojix", "draft", "DSL design needed",
+  ["project", "lojix", "4b8f55c618181b94", "draft", "DSL design needed",
    "Lojix has no transpile logic yet — all stubs. No DSL source relations exist. The lojix_source relation is defined but nothing populates it. DSL grammar is the next design task.",
    "2026-03-16", "2026-03-16", "becoming", "seen"],
-  ["t-observation-1", "observation", "global", "approved", "jj submodules do not exist yet",
+  ["observation", "global", "2bbb5139710a48ff", "approved", "jj submodules do not exist yet",
    "jj 0.36.0 has no submodule support. Tracked in jj-vcs/jj issue 494. Design doc exists but no implementation. Current workaround: Nix flake inputs for hermetic builds, sibling path deps for local dev.",
    "2026-03-16", "2026-03-16", "manifest", "proven"],
-  ["t-reference-1", "reference", "global", "approved", "FAVA Trails — inspiration for agent memory",
+  ["reference", "global", "5ba832bc5caf6f0d", "approved", "FAVA Trails — inspiration for agent memory",
    "github.com/MachineWisdomAI/fava-trails. MCP server for versioned agent memory using jj-tracked markdown. Key patterns: supersession, trust gate, typed relationships, draft isolation. Our datalog approach is strictly more powerful than their file-based emulation.",
    "2026-03-16", "2026-03-16", "manifest", "seen"],
-  ["t-feedback-1", "feedback", "global", "approved", "git is storage, jj is the only interface",
+  ["feedback", "global", "d574577a3f0e2dc3", "approved", "git is storage, jj is the only interface",
    "Never use git commands directly. jj is mandatory for all VCS operations across all repos. Why: user's explicit requirement for jj-centric workflow. How to apply: all VCS operations use jj, all documentation references jj.",
    "2026-03-16", "2026-03-16", "manifest", "eternal"]
 ]
-:put thought { id => kind, scope, status, title, body, created_ts, updated_ts, phase, dignity }
+:put thought { kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }
 
 #── Thought tags ────────────────────────────────────────────────────
 
-?[thought_id, tag] <- [
-  ["t-user-1",         "identity"],
-  ["t-project-1",      "history"],
-  ["t-project-1",      "migration"],
-  ["t-project-2",      "next-step"],
-  ["t-project-2",      "design"],
-  ["t-observation-1",  "blocker"],
-  ["t-observation-1",  "jj"],
-  ["t-reference-1",    "inspiration"],
-  ["t-reference-1",    "memory"],
-  ["t-feedback-1",     "vcs"],
-  ["t-feedback-1",     "non-negotiable"]
+?[kind, scope, title_hash, tag] <- [
+  ["user",        "global", "a80eef4686a9075a", "identity"],
+  ["project",     "global", "f64cc491adb5549d", "history"],
+  ["project",     "global", "f64cc491adb5549d", "migration"],
+  ["project",     "lojix",  "4b8f55c618181b94", "next-step"],
+  ["project",     "lojix",  "4b8f55c618181b94", "design"],
+  ["observation", "global", "2bbb5139710a48ff", "blocker"],
+  ["observation", "global", "2bbb5139710a48ff", "jj"],
+  ["reference",   "global", "5ba832bc5caf6f0d", "inspiration"],
+  ["reference",   "global", "5ba832bc5caf6f0d", "memory"],
+  ["feedback",    "global", "d574577a3f0e2dc3", "vcs"],
+  ["feedback",    "global", "d574577a3f0e2dc3", "non-negotiable"]
 ]
-:put thought_tag { thought_id, tag }
+:put thought_tag { kind, scope, title_hash, tag }
 
 #── Element seed ───────────────────────────────────────────────────────
 
