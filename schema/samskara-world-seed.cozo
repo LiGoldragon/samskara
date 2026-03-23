@@ -687,42 +687,42 @@
 ]
 :put sandbox { id => agent_id, name, db_access, base_shell, description, phase, dignity }
 
-?[id, domain, sign, compact, rationale, scope, phase, dignity] <- [
-  ["cozo-no-escapes", "cozoscript", "taurus",
+?[id, domain, planet, compact, rationale, scope, phase, dignity] <- [
+  ["cozo-no-escapes", "cozoscript", "saturn",
    "CozoScript strings: only quote-delimiter escape exists",
    "backslash-n and backslash-backslash are stored literally — codegen must not escape them",
    "global", "manifest", "proven"],
-  ["cozo-no-hash", "cozoscript", "taurus",
+  ["cozo-no-hash", "cozoscript", "saturn",
    "Octothorpe in CozoScript string literals is parsed as line comment",
    "string values containing the hash character are silently truncated at parse time",
    "global", "manifest", "proven"],
-  ["world-schema-register", "samskara", "capricorn",
+  ["world-schema-register", "samskara", "saturn",
    "Register new relations in world_schema before commit_world",
    "relations not in world_schema are invisible to VCS — commit returns 0 deltas",
    "global", "manifest", "proven"],
-  ["capnp-hyphen-split", "codegen", "virgo",
+  ["capnp-hyphen-split", "codegen", "mercury",
    "Split on hyphens and underscores when generating capnp identifiers",
    "capnp identifiers cannot contain hyphens — read-write becomes readWrite",
    "samskara-codegen", "manifest", "proven"],
-  ["nix-build-origin", "nix", "aries",
+  ["nix-build-origin", "nix", "mars",
    "Build from github: origin URL unless testing unpushed local changes",
    "local store paths mask real build failures — origin builds prove pushed code works",
    "global", "manifest", "proven"],
-  ["jj-always-m", "vcs", "leo",
+  ["jj-always-m", "vcs", "sun",
    "Always pass -m to jj describe and jj commit",
    "without -m jj launches an interactive editor which blocks agent execution",
    "global", "manifest", "eternal"],
-  ["jj-no-git", "vcs", "leo",
+  ["jj-no-git", "vcs", "sun",
    "Never use git commands directly — jj is the only VCS interface",
    "git is the storage backend only — query sys_command_alt for jj equivalents",
    "global", "manifest", "eternal"],
-  ["push-to-main", "vcs", "aries",
+  ["push-to-main", "vcs", "mars",
    "Push means push to main — no feature branches",
    "single-branch workflow — describe, new, bookmark set main, git push",
    "global", "manifest", "proven"],
-  ["commit-message-tuples", "vcs", "aquarius",
+  ["commit-message-tuples", "vcs", "saturn",
    "Commit messages are CozoScript tuple-of-three-tuples (Sol/Luna/Saturnus)",
    "sol=identity (CommitType, scope), luna=transformation (Action, what), saturnus=context (Verdict, why)",
    "global", "manifest", "eternal"]
 ]
-:put guideline { id => domain, sign, compact, rationale, scope, phase, dignity }
+:put guideline { id => domain, planet, compact, rationale, scope, phase, dignity }

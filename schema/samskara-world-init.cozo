@@ -369,7 +369,7 @@
 :create guideline {
   id: String =>
   domain: String,
-  sign: String,
+  planet: String,
   compact: String,
   rationale: String,
   scope: String,
