@@ -8,3 +8,8 @@ result
 \#*\#
 *~
 .\#*
+
+# Generated projections
+*.svg
+*.png
+*.dot
