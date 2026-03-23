@@ -59,6 +59,31 @@
   meaning: String
 }
 
+#── Extracted domains ──────────────────────────────────────────────
+#Every kind/type/status/role column is a variant discriminator.
+#The domain IS the thing, named for what it is — not for the field.
+
+:create Functor {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create Role {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
+:create Status {
+  name: String =>
+  description: String,
+  phase: String,
+  dignity: String
+}
+
 #── Knowledge layer ─────────────────────────────────────────────────
 
 :create thought {

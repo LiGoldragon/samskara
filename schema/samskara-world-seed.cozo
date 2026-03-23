@@ -93,7 +93,7 @@
   ["samskara-lojix-contract",  "main",  "passing",  "2026-03-16",  "3 contract relations, clean",                 "manifest", "seen"],
   ["samskara",                 "v1",    "passing",  "2026-03-16",  "CLI + jj-mirror, main loop stubbed",          "manifest", "seen"],
   ["lojix",                    "v1",    "passing",  "2026-03-16",  "CLI + transpile skeleton, all logic stubbed",  "manifest", "seen"],
-  ["Mentci",                   "main",  "n/a",      "2026-03-16",  "Workspace only — no build artifacts",         "manifest", "seen"]
+  ["Mentci",                   "main",  "not-applicable",      "2026-03-16",  "Workspace only — no build artifacts",         "manifest", "seen"]
 ]
 :put repo_state { name => bookmark, build_status, last_checked_ts, notes, phase, dignity }
 
@@ -324,9 +324,40 @@
 ?[name, description, phase, dignity] <- [
   ["Tool",           "CLI tool binary names",                          "manifest", "eternal"],
   ["CommandStatus",  "Permission states for system commands",          "manifest", "eternal"],
-  ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"]
+  ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"],
+  ["Functor",    "How things map — deterministic, bijective, tradition_dependent",        "manifest", "proven"],
+  ["Role",       "What an agent IS — owner, first-agent, researcher, architect, reviewer","manifest", "proven"],
+  ["Status",     "Lifecycle state — draft, proposed, approved, passing, failing",         "manifest", "proven"],
+  ["morphism",   "Structural connections between relations",                              "manifest", "proven"]
 ]
 :put Domain { name => description, phase, dignity }
+
+?[name, description, phase, dignity] <- [
+  ["deterministic",       "Every source row maps to exactly one target row", "manifest", "eternal"],
+  ["bijective",           "One-to-one and onto — invertible mapping",        "manifest", "eternal"],
+  ["tradition_dependent", "Mapping depends on which tradition is followed",  "manifest", "eternal"]
+]
+:put Functor { name => description, phase, dignity }
+
+?[name, description, phase, dignity] <- [
+  ["owner",       "Human project owner",                    "manifest", "eternal"],
+  ["first-agent", "Primary AI agent — full access",         "manifest", "eternal"],
+  ["researcher",  "Read-only research agent",               "manifest", "eternal"],
+  ["architect",   "Architecture agent — can propose changes","manifest", "eternal"],
+  ["reviewer",    "Review agent — audits changes",          "manifest", "eternal"],
+  ["root",        "System agent — owns infrastructure",     "manifest", "eternal"]
+]
+:put Role { name => description, phase, dignity }
+
+?[name, description, phase, dignity] <- [
+  ["draft",    "Initial capture — unreviewed",     "manifest", "eternal"],
+  ["proposed", "Submitted for consideration",      "manifest", "eternal"],
+  ["approved", "Accepted into the knowledge base", "manifest", "eternal"],
+  ["passing",  "Build succeeds",                   "manifest", "eternal"],
+  ["failing",  "Build fails",                      "manifest", "eternal"],
+  ["not-applicable", "Not applicable",              "manifest", "eternal"]
+]
+:put Status { name => description, phase, dignity }
 
 # CommandStatus enum
 ?[name, description, phase, dignity] <- [
