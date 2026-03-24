@@ -48,6 +48,15 @@ fn main() {
     let mut f = std::fs::File::create(&hash_path).expect("create schema_hash.txt");
     write!(f, "{hash}").expect("write schema hash");
 
+    // Compile RPC interface schema
+    capnpc::CompilerCommand::new()
+        .src_prefix("schema")
+        .file("schema/samskara-rpc.capnp")
+        .output_path(&out_dir)
+        .run()
+        .expect("samskara-rpc.capnp compilation failed");
+
     println!("cargo:rerun-if-changed=schema/samskara-world-init.cozo");
     println!("cargo:rerun-if-changed=schema/samskara-world-seed.cozo");
+    println!("cargo:rerun-if-changed=schema/samskara-rpc.capnp");
 }

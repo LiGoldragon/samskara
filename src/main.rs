@@ -6,9 +6,9 @@ use std::path::PathBuf;
 use samskara_core::boot;
 
 /// Samskara — the pure datalog agent.
-/// Runs as an MCP server over stdio. Its entire world is CozoDB relations.
+/// Runs as an MCP server over stdio, or as a capnp RPC server on a Unix socket.
 #[derive(Parser)]
-#[command(name = "samskara", about = "Pure datalog agent — MCP server mode")]
+#[command(name = "samskara", about = "Pure datalog agent — MCP or capnp RPC")]
 struct Args {
     /// Path to the sqlite-backed CozoDB database.
     /// Defaults to "world.db" in the current directory.
@@ -18,6 +18,10 @@ struct Args {
     /// Use an in-memory database instead of sqlite.
     #[arg(long)]
     memory: bool,
+
+    /// Start capnp RPC server on this Unix socket path instead of MCP stdio.
+    #[arg(long, value_name = "SOCKET_PATH")]
+    socket: Option<PathBuf>,
 }
 
 /// Ontological bedrock — these relations are eternal dignity.
@@ -91,13 +95,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let relations = db.run_script("::relations")?;
     tracing::info!("active relations: {relations}");
 
-    // Start MCP server on stdio
     let db = Arc::new(db);
-    let server = samskara::mcp::SamskaraMcp::new(db);
 
-    tracing::info!("samskara MCP server starting on stdio");
-    let service = rmcp::ServiceExt::serve(server, rmcp::transport::stdio()).await?;
-    service.waiting().await?;
+    if let Some(socket_path) = &args.socket {
+        // capnp RPC mode — noesis speaks to us here
+        samskara::rpc::serve_rpc(db, socket_path).await?;
+    } else {
+        // MCP mode — legacy JSON-RPC over stdio
+        let server = samskara::mcp::SamskaraMcp::new(db);
+        tracing::info!("samskara MCP server starting on stdio");
+        let service = rmcp::ServiceExt::serve(server, rmcp::transport::stdio()).await?;
+        service.waiting().await?;
+    }
 
     Ok(())
 }
