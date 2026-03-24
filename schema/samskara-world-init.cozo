@@ -307,7 +307,7 @@
   dignity: String
 }
 
-:create FlagConstraint {
+:create Constraint {
   name: String =>
   description: String,
   phase: String,

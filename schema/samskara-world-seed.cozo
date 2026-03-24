@@ -324,7 +324,7 @@
 ?[name, description, phase, dignity] <- [
   ["Tool",           "CLI tool binary names",                          "manifest", "eternal"],
   ["Permission",  "Permission states for system commands",          "manifest", "eternal"],
-  ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"],
+  ["Constraint",     "What limits — required, optional, forbidden",     "manifest", "proven"],
   ["Functor",    "How things map — deterministic, bijective, tradition_dependent",        "manifest", "proven"],
   ["Role",       "What an agent IS — owner, first-agent, researcher, architect, reviewer","manifest", "proven"],
   ["Status",     "Lifecycle state — draft, proposed, approved, passing, failing",         "manifest", "proven"],
@@ -368,13 +368,13 @@
 ]
 :put Permission { name => description, phase, dignity }
 
-# FlagConstraint enum
+# Constraint enum
 ?[name, description, phase, dignity] <- [
   ["required",  "Flag must always be passed",     "manifest", "eternal"],
   ["optional",  "Flag may be passed",             "manifest", "eternal"],
   ["forbidden", "Flag must never be passed",      "manifest", "eternal"]
 ]
-:put FlagConstraint { name => description, phase, dignity }
+:put Constraint { name => description, phase, dignity }
 
 # Tool enum
 ?[name, description, phase, dignity] <- [
