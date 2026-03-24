@@ -4,7 +4,7 @@
   ["Domain",     "Registry of all controlled vocabularies (Date: permitted value sets)", "manifest", "eternal"],
   ["Phase",      "Lifecycle tri-state: manifest/becoming/retired", "manifest", "eternal"],
   ["Dignity",    "Epistemological trust hierarchy", "manifest", "eternal"],
-  ["CommitType", "Jujutsu commit classification", "manifest", "eternal"],
+  ["Change", "Jujutsu commit classification", "manifest", "eternal"],
   ["Action",     "Commit transformation verb", "manifest", "eternal"],
   ["Verdict",    "Commit context judgment", "manifest", "eternal"],
   ["Element",    "Four classical elements — fire/water/air/earth", "manifest", "eternal"],
@@ -19,7 +19,7 @@
 
 #Phase and Dignity seeds are loaded by samskara-core during core_genesis.
 
-#── CommitType seed (manifest — what kind of change) ──────────────────
+#── Change seed (manifest — what kind of change) ──────────────────
 
 ?[name, description, phase, dignity] <- [
   ["fix",       "Bug fix or correction", "manifest", "eternal"],
@@ -35,7 +35,7 @@
   ["test",      "Test addition or modification", "manifest", "eternal"],
   ["migrate",   "Data or naming migration", "manifest", "eternal"]
 ]
-:put CommitType { name => description, phase, dignity }
+:put Change { name => description, phase, dignity }
 
 #── Action seed (becoming — what transformation verb) ─────────────────
 
@@ -753,7 +753,7 @@
    "global", "manifest", "proven"],
   ["commit-message-tuples", "vcs", "saturn",
    "Commit messages are CozoScript tuple-of-three-tuples (Sol/Luna/Saturnus)",
-   "sol=identity (CommitType, scope), luna=transformation (Action, what), saturnus=context (Verdict, why)",
+   "sol=identity (Change, scope), luna=transformation (Action, what), saturnus=context (Verdict, why)",
    "global", "manifest", "eternal"]
 ]
 :put guideline { id => domain, planet, compact, rationale, scope, phase, dignity }

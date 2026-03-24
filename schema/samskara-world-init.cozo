@@ -12,11 +12,11 @@
 
 #── Commit message enums ──────────────────────────────────────────────
 #A commit message is a tuple of three tuples — manifest/becoming/retired:
-#  (manifest: identity)    (CommitType) or (CommitType, scope)
+#  (manifest: identity)    (Change) or (Change, scope)
 #  (becoming: transformation) (Action, "what transformed")
 #  (retired: context)      (Verdict, "why") or ()
 
-:create CommitType {
+:create Change {
   name: String =>
   description: String,
   phase: String,
