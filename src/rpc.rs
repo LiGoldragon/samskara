@@ -22,6 +22,10 @@ fn bytes_to_str(b: &[u8]) -> &str {
     std::str::from_utf8(b).unwrap_or("")
 }
 
+fn escape_cozo(s: &str) -> String {
+    s.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
 fn run_query(db: &criome_cozo::CriomeDb, script: &str) -> Vec<u8> {
     match db.run_script(script) {
         Ok(result) => result.to_string().into_bytes(),
@@ -99,12 +103,15 @@ impl samskara::Server for SamskaraRpc {
         let body = bytes_to_str(pry!(p.get_body()));
 
         let title_hash = blake3::hash(title.as_bytes()).to_hex().to_string();
-        let escaped_title = title.replace('"', "\\\"");
-        let escaped_body = body.replace('"', "\\\"");
+        let ek = escape_cozo(kind);
+        let es = escape_cozo(scope);
+        let est = escape_cozo(status);
+        let et = escape_cozo(title);
+        let eb = escape_cozo(body);
 
         let script = format!(
             "?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- \
-             [[\"{kind}\", \"{scope}\", \"{title_hash}\", \"{status}\", \"{escaped_title}\", \"{escaped_body}\", \"\", \"\", \"becoming\", \"seen\"]] \
+             [[\"{ek}\", \"{es}\", \"{title_hash}\", \"{est}\", \"{et}\", \"{eb}\", \"\", \"\", \"becoming\", \"seen\"]] \
              :put thought {{ kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }}"
         );
 
@@ -125,15 +132,15 @@ impl samskara::Server for SamskaraRpc {
         let phase = bytes_to_str(pry!(p.get_phase()));
 
         let mut conditions = vec!["phase != \"retired\"".to_string()];
-        if !kind.is_empty() { conditions.push(format!("kind == \"{kind}\"")); }
-        if !scope.is_empty() { conditions.push(format!("scope == \"{scope}\"")); }
-        if !phase.is_empty() { conditions.push(format!("phase == \"{phase}\"")); }
+        if !kind.is_empty() { conditions.push(format!("kind == \"{}\"", escape_cozo(kind))); }
+        if !scope.is_empty() { conditions.push(format!("scope == \"{}\"", escape_cozo(scope))); }
+        if !phase.is_empty() { conditions.push(format!("phase == \"{}\"", escape_cozo(phase))); }
 
         let filter = conditions.join(", ");
         let query = if tag.is_empty() {
             format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, {filter}")
         } else {
-            format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, *thought_tag{{kind, scope, title_hash, tag}}, tag == \"{tag}\", {filter}")
+            format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, *thought_tag{{kind, scope, title_hash, tag}}, tag == \"{}\", {filter}", escape_cozo(tag))
         };
 
         let output = run_query(&self.db, &query);
