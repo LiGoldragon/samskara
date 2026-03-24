@@ -230,7 +230,7 @@
 
 #── Source provenance layer ─────────────────────────────────────────
 
-:create SourceType {
+:create Provenance {
   name: String =>
   description: String,
   phase: String,
@@ -300,7 +300,7 @@
   dignity: String
 }
 
-:create CommandStatus {
+:create Permission {
   name: String =>
   description: String,
   phase: String,
@@ -376,7 +376,7 @@
 #Per-agent sandbox environments with controlled DB access.
 #Each sandbox maps to a dev shell in mentci-box and an agent in the registry.
 
-:create DbAccess {
+:create Access {
   name: String =>
   description: String,
   phase: String,

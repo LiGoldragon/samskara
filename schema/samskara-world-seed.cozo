@@ -13,7 +13,7 @@
   ["Planet",     "Seven classical planets + nodes", "manifest", "eternal"],
   ["Rulership",  "Planet-Sign dignity assignments — domicile/exaltation/detriment/fall", "manifest", "eternal"],
   ["Aspect",     "Geometric relationships between signs", "manifest", "eternal"],
-  ["SourceType", "Fetcher types for external sources — mirrors Nix fetchurl/fetchgit/etc", "manifest", "eternal"]
+  ["Provenance", "External origin type — github, tarball, file, annas_archive", "manifest", "proven"]
 ]
 :put Domain { name => description, phase, dignity }
 
@@ -248,7 +248,7 @@
 ]
 :put Rulership { planet, sign, dignity_type => phase, dignity }
 
-#── SourceType seed ────────────────────────────────────────────────────
+#── Provenance seed ────────────────────────────────────────────────
 
 ?[name, description, phase, dignity] <- [
   ["github", "GitHub repository — owner/repo format", "manifest", "eternal"],
@@ -260,7 +260,7 @@
   ["path", "Local filesystem path", "manifest", "eternal"],
   ["annas_archive", "Anna's Archive — MD5 identifies content", "manifest", "eternal"]
 ]
-:put SourceType { name => description, phase, dignity }
+:put Provenance { name => description, phase, dignity }
 
 #── Aspect seed ────────────────────────────────────────────────────────
 
@@ -323,7 +323,7 @@
 # Register enum types
 ?[name, description, phase, dignity] <- [
   ["Tool",           "CLI tool binary names",                          "manifest", "eternal"],
-  ["CommandStatus",  "Permission states for system commands",          "manifest", "eternal"],
+  ["Permission",  "Permission states for system commands",          "manifest", "eternal"],
   ["FlagConstraint", "Flag constraint types for command flags",        "manifest", "eternal"],
   ["Functor",    "How things map — deterministic, bijective, tradition_dependent",        "manifest", "proven"],
   ["Role",       "What an agent IS — owner, first-agent, researcher, architect, reviewer","manifest", "proven"],
@@ -359,14 +359,14 @@
 ]
 :put Status { name => description, phase, dignity }
 
-# CommandStatus enum
+# Permission enum
 ?[name, description, phase, dignity] <- [
   ["allowed",     "Command is permitted for use",                              "manifest", "eternal"],
   ["disallowed",  "Command is forbidden — use the alternative",                "manifest", "eternal"],
   ["restricted",  "Command is allowed with constraints (check sys_command_flag)", "manifest", "eternal"],
   ["internal",    "Command is used internally by infrastructure only",         "manifest", "eternal"]
 ]
-:put CommandStatus { name => description, phase, dignity }
+:put Permission { name => description, phase, dignity }
 
 # FlagConstraint enum
 ?[name, description, phase, dignity] <- [
@@ -693,7 +693,7 @@
 #── Sandbox layer seeds ───────────────────────────────────────────────
 
 ?[name, description, phase, dignity] <- [
-  ["DbAccess", "Database access levels for sandboxes", "manifest", "eternal"]
+  ["Access", "Database access levels for sandboxes", "manifest", "eternal"]
 ]
 :put Domain { name => description, phase, dignity }
 
@@ -702,7 +702,7 @@
   ["read-only",  "Query-only access to world.db",    "manifest", "eternal"],
   ["snapshot",   "Read from a point-in-time copy",    "manifest", "eternal"]
 ]
-:put DbAccess { name => description, phase, dignity }
+:put Access { name => description, phase, dignity }
 
 ?[id, name, role, email, phase, dignity] <- [
   ["claude-researcher", "Claude Researcher", "researcher", "noreply@anthropic.com", "manifest", "seen"],
