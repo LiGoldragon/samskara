@@ -9,10 +9,10 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    criome-cozo = { url = "github:LiGoldragon/criome-cozo"; flake = false; };
-    samskara-core = { url = "github:LiGoldragon/samskara-core"; flake = false; };
-    samskara-lojix-contract = { url = "github:LiGoldragon/samskara-lojix-contract"; flake = false; };
-    samskara-codegen = { url = "github:LiGoldragon/samskara-codegen"; flake = false; };
+    criome-cozo = { url = "github:LiGoldragon/criome-cozo/v1"; flake = false; };
+    samskara-core = { url = "github:LiGoldragon/samskara-core/v1"; flake = false; };
+    samskara-lojix-contract = { url = "github:LiGoldragon/samskara-lojix-contract/v1"; flake = false; };
+    samskara-codegen = { url = "github:LiGoldragon/samskara-codegen/v1"; flake = false; };
   };
 
   outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-core, samskara-lojix-contract, samskara-codegen, ... }:
