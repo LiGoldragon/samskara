@@ -10,21 +10,22 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     criome-cozo = { url = "github:LiGoldragon/criome-cozo"; flake = false; };
+    samskara-core = { url = "github:LiGoldragon/samskara-core"; flake = false; };
     samskara-lojix-contract = { url = "github:LiGoldragon/samskara-lojix-contract"; flake = false; };
     samskara-codegen = { url = "github:LiGoldragon/samskara-codegen"; flake = false; };
   };
 
-  outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-lojix-contract, samskara-codegen, ... }:
+  outputs = { self, nixpkgs, flake-utils, crane, fenix, criome-cozo, samskara-core, samskara-lojix-contract, samskara-codegen, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
         rustToolchain = fenix.packages.${system}.latest.toolchain;
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
-        # Include .cozo files alongside standard cargo sources
-        cozoFilter = path: _type: builtins.match ".*\\.cozo$" path != null;
+        # Include .cozo and .capnp files alongside standard cargo sources
+        extraFilter = path: _type: builtins.match ".*\\.(cozo|capnp)$" path != null;
         sourceFilter = path: type:
-          (cozoFilter path type) || (craneLib.filterCargoSources path type);
+          (extraFilter path type) || (craneLib.filterCargoSources path type);
         src = pkgs.lib.cleanSourceWith {
           src = ./.;
           filter = sourceFilter;
@@ -38,6 +39,7 @@
           postUnpack = ''
             depDir=$(dirname $sourceRoot)
             cp -rL ${criome-cozo} $depDir/criome-cozo
+            cp -rL ${samskara-core} $depDir/samskara-core
             cp -rL ${samskara-lojix-contract} $depDir/samskara-lojix-contract
             cp -rL ${samskara-codegen} $depDir/samskara-codegen
           '';

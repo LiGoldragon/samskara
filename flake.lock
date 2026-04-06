@@ -18,11 +18,11 @@
     "criome-cozo": {
       "flake": false,
       "locked": {
-        "lastModified": 1773664911,
-        "narHash": "sha256-IIeHxQN2BlbSnZOdOuJguu5oaFovnhrAXdVzWeuI+QU=",
+        "lastModified": 1774255546,
+        "narHash": "sha256-hpDxRqmFHE024iyW35IfD16EteTKVo+nmOxIl6cLlyQ=",
         "owner": "LiGoldragon",
         "repo": "criome-cozo",
-        "rev": "f2840a4bdd7d5936e9dc1edeb54d32a02f588694",
+        "rev": "82d338fbe1767afb42f00b7e9ab973f47c852a0a",
         "type": "github"
       },
       "original": {
@@ -94,6 +94,7 @@
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
         "samskara-codegen": "samskara-codegen",
+        "samskara-core": "samskara-core",
         "samskara-lojix-contract": "samskara-lojix-contract"
       }
     },
@@ -117,11 +118,11 @@
     "samskara-codegen": {
       "flake": false,
       "locked": {
-        "lastModified": 1774024887,
-        "narHash": "sha256-XaNQUeq3rbRyhbdNWrRNsBriZBNt08UFpDmKS+m3NP0=",
+        "lastModified": 1774355423,
+        "narHash": "sha256-OHqHeqhbnJ4haWCUREdxS1/8/GsJjpnnFxwCAo8Ud1M=",
         "owner": "LiGoldragon",
         "repo": "samskara-codegen",
-        "rev": "9bce68531fd6d0334070a8d19216b6acbce052e2",
+        "rev": "a41d96d1f99e247c729ce06f721a36c74445e0db",
         "type": "github"
       },
       "original": {
@@ -130,14 +131,30 @@
         "type": "github"
       }
     },
+    "samskara-core": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1775473573,
+        "narHash": "sha256-/JpO5LGMOSX95tTL71Jobsjs1NEgfsCo+bsxJSL+jOg=",
+        "owner": "LiGoldragon",
+        "repo": "samskara-core",
+        "rev": "85380ae3e4107b77d0d7846eb37f41c442559611",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LiGoldragon",
+        "repo": "samskara-core",
+        "type": "github"
+      }
+    },
     "samskara-lojix-contract": {
       "flake": false,
       "locked": {
-        "lastModified": 1773666360,
-        "narHash": "sha256-dmfQaP00Z2SueGOp4nPZn5bUJO3QdBYtD8LJm8TRRZM=",
+        "lastModified": 1774255559,
+        "narHash": "sha256-beotT5+n+9Ak45eMwGaOdog68DNTXRYIWkdTIyKC//k=",
         "owner": "LiGoldragon",
         "repo": "samskara-lojix-contract",
-        "rev": "6a2d32bd42803c8bfb60ae792723f58de9e2950c",
+        "rev": "42875071591c4c850d8eee6a03c397a505c0ccb3",
         "type": "github"
       },
       "original": {

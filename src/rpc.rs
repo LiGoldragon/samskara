@@ -23,7 +23,7 @@ fn bytes_to_str(b: &[u8]) -> &str {
 }
 
 fn escape_cozo(s: &str) -> String {
-    s.replace('\\', "\\\\").replace('"', "\\\"")
+    s.replace('\\', "\\\\").replace('\'', "\\'")
 }
 
 fn run_query(db: &criome_cozo::CriomeDb, script: &str) -> Vec<u8> {
@@ -111,7 +111,7 @@ impl samskara::Server for SamskaraRpc {
 
         let script = format!(
             "?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- \
-             [[\"{ek}\", \"{es}\", \"{title_hash}\", \"{est}\", \"{et}\", \"{eb}\", \"\", \"\", \"becoming\", \"seen\"]] \
+             [['{ek}', '{es}', '{title_hash}', '{est}', '{et}', '{eb}', '', '', 'becoming', 'seen']] \
              :put thought {{ kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }}"
         );
 
@@ -131,16 +131,16 @@ impl samskara::Server for SamskaraRpc {
         let tag = bytes_to_str(pry!(p.get_tag()));
         let phase = bytes_to_str(pry!(p.get_phase()));
 
-        let mut conditions = vec!["phase != \"retired\"".to_string()];
-        if !kind.is_empty() { conditions.push(format!("kind == \"{}\"", escape_cozo(kind))); }
-        if !scope.is_empty() { conditions.push(format!("scope == \"{}\"", escape_cozo(scope))); }
-        if !phase.is_empty() { conditions.push(format!("phase == \"{}\"", escape_cozo(phase))); }
+        let mut conditions = vec!["phase != 'retired'".to_string()];
+        if !kind.is_empty() { conditions.push(format!("kind == '{}'", escape_cozo(kind))); }
+        if !scope.is_empty() { conditions.push(format!("scope == '{}'", escape_cozo(scope))); }
+        if !phase.is_empty() { conditions.push(format!("phase == '{}'", escape_cozo(phase))); }
 
         let filter = conditions.join(", ");
         let query = if tag.is_empty() {
             format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, {filter}")
         } else {
-            format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, *thought_tag{{kind, scope, title_hash, tag}}, tag == \"{}\", {filter}", escape_cozo(tag))
+            format!("?[kind, scope, title, body, phase, dignity] := *thought{{kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity}}, *thought_tag{{kind, scope, title_hash, tag}}, tag == '{}', {filter}", escape_cozo(tag))
         };
 
         let output = run_query(&self.db, &query);

@@ -146,14 +146,14 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let now = chrono::Utc::now().to_rfc3339();
         let result = tokio::task::spawn_blocking(move || {
-            let esc = |s: &str| s.replace('"', "\\\"");
+            let esc = |s: &str| s.replace('\'', "\\'");
             let title_hash = &blake3::hash(params.title.as_bytes()).to_hex()[..16];
 
             let thought_script = format!(
-                r#"?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
-                    "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}", "{}"
+                "?[kind, scope, title_hash, status, title, body, created_ts, updated_ts, phase, dignity] <- [[
+                    '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}'
                 ]]
-                :put thought {{ kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }}"#,
+                :put thought {{ kind, scope, title_hash => status, title, body, created_ts, updated_ts, phase, dignity }}",
                 esc(&params.kind),
                 esc(&params.scope),
                 title_hash,
@@ -169,8 +169,8 @@ impl SamskaraMcp {
 
             for tag in &params.tags {
                 let tag_script = format!(
-                    r#"?[kind, scope, title_hash, tag] <- [["{}","{}","{}","{}"]]
-                    :put thought_tag {{ kind, scope, title_hash, tag }}"#,
+                    "?[kind, scope, title_hash, tag] <- [['{}','{}','{}','{}']]
+                    :put thought_tag {{ kind, scope, title_hash, tag }}",
                     esc(&params.kind),
                     esc(&params.scope),
                     title_hash,
@@ -201,23 +201,23 @@ impl SamskaraMcp {
         let db = self.db.clone();
         let result = tokio::task::spawn_blocking(move || {
             let mut conditions = vec![
-                "phase != \"retired\"".to_string(),
+                "phase != 'retired'".to_string(),
             ];
 
             if let Some(ref kind) = params.kind {
-                conditions.push(format!("kind = \"{}\"", kind.replace('"', "\\\"")));
+                conditions.push(format!("kind = '{}'", kind.replace('\'', "\\'")));
             }
             if let Some(ref scope) = params.scope {
-                conditions.push(format!("scope = \"{}\"", scope.replace('"', "\\\"")));
+                conditions.push(format!("scope = '{}'", scope.replace('\'', "\\'")));
             }
 
             let base = if let Some(ref tag) = params.tag {
                 format!(
                     "?[kind, scope, status, title, body, phase, dignity] := \
                      *thought{{kind, scope, title_hash, status, title, body, phase, dignity}}, \
-                     *thought_tag{{kind, scope, title_hash, tag: \"{}\"}}, \
+                     *thought_tag{{kind, scope, title_hash, tag: '{}'}}, \
                      {}",
-                    tag.replace('"', "\\\""),
+                    tag.replace('\'', "\\'"),
                     conditions.join(", ")
                 )
             } else {
